@@ -7,7 +7,7 @@
 
 # Site Settings
 locale                   : "en-US"
-title                    : "NR Brouwer"
+title                    : "NR rouwer"
 title_separator          : "-"
 name                     : &name "NR Brouwer"
 description              : &description "personal description"
