@@ -1,6 +1,6 @@
 ---
 title: "DATA"
-permalink: /teaching/
+permalink: /data/
 author_profile: true
 ---
 
