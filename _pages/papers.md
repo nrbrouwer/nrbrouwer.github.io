@@ -5,10 +5,10 @@ permalink: /papers/
 author_profile: true
 ---
 
-# Published 
+## Published 
 
 Maybe someday...
 
-# Working 
+## Working 
 
 hard
