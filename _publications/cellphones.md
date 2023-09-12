@@ -1,7 +1,7 @@
 ---
 title: "Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World"
 collection: papers
-permalink: /papers/Coordination-Cellphones
+permalink: 
 date: 2023-09-12 
 venue: 
 paperurl: 
