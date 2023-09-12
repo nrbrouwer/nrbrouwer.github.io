@@ -5,8 +5,10 @@ permalink: /papers/
 author_profile: true
 ---
 
-## Working 
+<h1>Working Papers</h1>
+---
 
+<!---
 {% if author.googlescholar %}
   You can also find my articles on <u><a href="{{author.googlescholar}}">my Google Scholar profile</a>.</u>
 {% endif %}
@@ -14,5 +16,8 @@ author_profile: true
 {% include base_path %}
 
 {% for post in site.publications reversed %}
-  {% include archive-single.html %}
+  {% if post.pubtype == 'working' %}
+      {% include archive-single.html %}
+  {% endif %}
 {% endfor %}
+-->
