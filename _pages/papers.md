@@ -5,7 +5,7 @@ permalink: /papers/
 author_profile: true
 ---
 
-<h1> # Working Papers</h1>
+<h1> Working Paper s</h1>
 ---
 
 <!---
@@ -22,5 +22,5 @@ author_profile: true
 {% endfor %}
 -->
 
-# Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World
-## Brouwer, NR, Aditya Dasgupta, and Tesalia Rizzo
+### Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World
+Brouwer, NR, Aditya Dasgupta, and Tesalia Rizzo
