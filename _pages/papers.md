@@ -8,7 +8,19 @@ author_profile: true
 <h1> Working Papers</h1>
 ---
 
-<!---
+* <div style="font-size:14px;max-width:600px;text-align:justify">"Tribal Governance and Access to Basic Services: Evidence from Broadband Internet"
+
+Brouwer, NR
+
+* <div style="font-size:14px;max-width:600px;text-align:justify">"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes"
+
+Brouwer, NR, and Tessa Provins
+
+* <div style="font-size:14px;max-width:600px;text-align:justify"> "Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World"
+
+Brouwer, NR, Aditya Dasgupta, and Tesalia Rizzo
+
+<!--
 {% if author.googlescholar %}
   You can also find my articles on <u><a href="{{author.googlescholar}}">my Google Scholar profile</a>.</u>
 {% endif %}
@@ -22,5 +34,5 @@ author_profile: true
       {% include archive-single.html %}
   {% endif %}
 {% endfor %}
---->
+-->
 
