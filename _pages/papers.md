@@ -22,8 +22,6 @@ author_profile: true
 {% endfor %}
 -->
 
-<!---
-<font size=”16”> Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World </font>
 
-<font size=”12”> Brouwer, NR, Aditya Dasgupta, and Tesalia Rizzo </font>
--->
+Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World 
+:   Brouwer, NR, Aditya Dasgupta, and Tesalia Rizzo 
