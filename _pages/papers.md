@@ -10,10 +10,10 @@ author_profile: true
 
 "Tribal Governance and Access to Basic Services: Evidence from Broadband Internet" 
 
-"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes" <span style="font-size:16px;">with **Tessa Provins**</span>
+"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes" <span style="font-size:14px;">with **Tessa Provins**</span>
 
 
 
-"Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World" <span style="font-size:12px;">with **Aditya Dasgupta** and **Tesalia Rizzo**</span>
+"Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World" <span style="font-size:14px;">with **Aditya Dasgupta** and **Tesalia Rizzo**</span>
 
 
