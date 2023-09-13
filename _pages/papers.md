@@ -17,6 +17,6 @@ author_profile: true
 </div>
 
 <div class="entry">
-<div style="font-size:18px;max-width:600px;text-align:justify"> "Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World"<span style="font-size:12px;"> with </strong>Aditya Dasgupta</strong> and </strong>Tesalia Rizzo</strong><span style="font-size:12px;">
+<div style="font-size:18px;max-width:600px;text-align:justify"> "Information and Voter Coordination: Evidence from the Rollout of Cellular Networks in the Developing World"<span style="font-size:12px;"> with </strong>Aditya Dasgupta</strong> and </strong>Tesalia Rizzo</strong></span></div>
 </div>
 
