@@ -7,6 +7,9 @@ author_profile: true
     <style>
         .entry {
             margin-bottom: 20px;
+        .entry strong {
+            font-weight: bold;
+        }
     </style>
 
 <h1> Working Papers</h1>
