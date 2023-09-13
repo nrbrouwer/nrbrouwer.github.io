@@ -3,6 +3,7 @@ title: "Information and Voter Coordination: Evidence from the Rollout of Cellula
 collection: papers
 permalink: 
 date: 2023-09-12 
+pubtype: "working"
 venue: 
 paperurl: 
 link: 
