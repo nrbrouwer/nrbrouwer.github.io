@@ -4,6 +4,10 @@ title: "Papers"
 permalink: /papers/
 author_profile: true
 ---
+    <style>
+        .entry {
+            margin-bottom: 20px;
+    </style>
 
 <h1> Working Papers</h1>
 ---
