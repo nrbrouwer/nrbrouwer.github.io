@@ -10,7 +10,7 @@ author_profile: true
 
 <div style="font-size:18px;max-width:600px;text-align:justify">"Tribal Governance and Access to Basic Services: Evidence from Broadband Internet" 
 
-<div style="font-size:18px;max-width:600px;text-align:justify">"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes"<span style="font-size:12px;">with <dt>Tessa Provins<dt></span></div>
+<div style="font-size:18px;max-width:600px;text-align:justify">"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes"with **Tessa Provins**
 
 
 
