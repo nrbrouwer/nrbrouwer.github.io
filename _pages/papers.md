@@ -21,5 +21,5 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 
 "Explaining the Indigenous Digital Divide Using Tribal Governance Capacity" 
 
-"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes" <span style="font-size:14px;">with **Tessa Provins**</span> <a href="https://github.com/nrbrouwer/nrbrouwer.github.io/blob/master/files/pdf/TiesThatBind_BrouwerProvins_SPSA.pdf">link</a>
+"The Ties That Bind Us: U.S. Federal Government Financial Transactions with Native American Tribes" <span style="font-size:14px;">with **Tessa Provins**</span> [link](/files/pdf/TiesThatBind_BrouwerProvins_MPSA.pdf)
  
