@@ -8,6 +8,6 @@ redirect_from:
   - /about.html
 ---
 
-The name is Nick, the title is PhD student, and the affiliation is the Department of Political Science at the University of California, Merced. I come by way of the University of Texas at Dallas with a BA in International Political Economy Dallas and the LBJ School of Public Affairs at the University of Texas, Austin with an MA in Global Policy Studies.
+Welcome to my website! I'm Nick, a PhD candidate in the political science department at the University of California, Merced. Previously, I earned my BA from the University of Texas at Dallas in International Political Economy, and a Masters in Global Policy Studies at the LBJ School of Public Affairs at the University of Texas, Austin.
 
-My interests largely lay with indigenous political institutions and spatial data, and the intersection of the two. I am also affiliated with the [PEARS Lab @ UC Merced](https://sites.ucmerced.edu/pears/about) and a research assistant with the *Dispossessions in the Americas* project at the University of Pennsylvania.
+My interests largely lay with indigenous political institutions and spatial data, as well as the intersection of the two. I am also affiliated with the [PEARS Lab @ UC Merced](https://sites.ucmerced.edu/pears/about) and work as a research assistant with the consulting firm [Social Impact](https://socialimpact.com/) on an international survey project. 
