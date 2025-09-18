@@ -9,6 +9,7 @@ group :jekyll_plugins do
   gem 'webrick', '~> 1.8'
   gem 'tzinfo'
   gem 'tzinfo-data'
+  gem 'jekyll-toc'
 end
 
 gem 'github-pages'

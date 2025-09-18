@@ -304,6 +304,7 @@ plugins:
   - jekyll-paginate
   - jekyll-sitemap
   - jekyll-redirect-from
+  - jekyll-toc
   - jemoji
 
 # Mimic GitHub Pages with --safe
