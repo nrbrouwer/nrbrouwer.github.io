@@ -5,6 +5,9 @@ author_profile: true
 toc: true
 ---
 
+* TOC
+{:toc}
+
 ## Teaching Assistant
 
 As a PhD student, I have worked as a TA for a number courses, both undergraduate and graduate level, in the American, Comparative, and Methods sub-fields.
