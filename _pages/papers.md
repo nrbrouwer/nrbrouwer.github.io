@@ -5,9 +5,6 @@ permalink: /papers/
 author_profile: true
 ---
 
-* TOC
-{:toc}
-
 ## Published Work 
 ---
 
