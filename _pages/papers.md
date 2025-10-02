@@ -5,8 +5,18 @@ permalink: /papers/
 author_profile: true
 ---
 
-* TOC
-{:toc}
+<style>
+  .hover-zoom {
+    transition: transform 0.3s ease;
+    cursor: pointer;
+  }
+  .hover-zoom:hover {
+    transform: scale(5);
+    z-index: 10;
+    position: relative;
+  }
+</style>
+
 
 ## Published Work 
 ---
@@ -16,7 +26,11 @@ author_profile: true
 <div style="margin-top: 0px; margin-bottom: 0px; font-size: 90%;">
 
 NR Brouwer (2024), "Exploring the Influence of Tribal Governance Capacity: Evidence from Internet Availability in Indian Country", Journal of Political Institutions and Political Economy: Vol. 5: No. 2, pp 179-207. <a href="/files/pdf/broadband_access_reservation_brouwer_2024.pdf" class="btn">Download</a> <a href="http://dx.doi.org/10.1561/113.00000098" class="btn" >Journal link</a> 
-</div>
+</div> 
+
+<p style="text-align: center;">
+  <img src="/files/images/mn_map_clean.jpg" class="hover-zoom" width="150">
+</p>
 
 <h3> NIMBYs, YIMBYs, and the Politics of Land Use in American Cities</h3>
 
@@ -29,10 +43,17 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 ## Working Papers 
 ---
 
-**JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/brouwer_jmp_power_to_prosper.pdf" class="btn" >Download</a>
+**JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/brouwer_jmp_power_to_prosper.pdf" class="btn" >Download</a> 
 
-"Tools To Persuade: Exploring Tribal Engagement and the Politics of Federal Support" <span style="font-size:14px;">with **Tessa Provins**</span> <a href="/files/pdf/Brouwer_and_Provins__Native_Government_Allocation.pdf" class="btn" >Download</a>
+<p style="text-align: center;">
+  <img src="/files/images/main_results_dyefs_ife_10.1.25.jpg" class="hover-zoom" width="150">
+</p>
+
+"Tools To Persuade: Exploring Tribal Engagement and the Politics of Federal Support" <span style="font-size:14px;">with **Tessa Provins**</span> <a href="/files/pdf/Brouwer_and_Provins__Native_Government_Allocation.pdf" class="btn" >Download</a> 
  
+ <p style="text-align: center;">
+  <img src="/files/images/doipaper_fuding_region.jpg" class="hover-zoom" width="150">
+</p>
 
 ## Early Stage Projects 
 ---
