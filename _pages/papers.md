@@ -10,10 +10,18 @@ author_profile: true
     transition: transform 0.3s ease;
     cursor: pointer;
   }
+
   .hover-zoom:hover {
-    transform: scale(5);
+    transform: scale(3);
     z-index: 10;
     position: relative;
+  }
+  
+
+  @media (min-width: 768px) {
+    .hover-zoom:hover {
+      transform: scale(5);
+    }
   }
 </style>
 
