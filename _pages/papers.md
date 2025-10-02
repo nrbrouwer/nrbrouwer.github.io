@@ -12,7 +12,7 @@ author_profile: true
   }
 
   .hover-zoom:hover {
-    transform: scale(3);
+    transform: scale(2.5);
     z-index: 10;
     position: relative;
   }
