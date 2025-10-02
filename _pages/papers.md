@@ -107,8 +107,14 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 
 "Beyond the Reservation Line: The Electoral Consequences of American Indian Migration" <span style="font-size:14px;">with **Alex Zhao**</span>
 
-The urbanization of American Indians has been a trend in native communities for the past 75 years, yet it's effects are rarely studied quantitatively. This project descriptively analyzes this migration, showing trends in American Indian migration over the past Century. Then it looks into how these American Indian migrants impact the electoral outcomes of small urban areas they move to.
+<details>
+  <summary>Abstract</summary>
+  <p>The urbanization of American Indians has been a trend in native communities for the past 75 years, yet it's effects are rarely studied quantitatively. This project descriptively analyzes this migration, showing trends in American Indian migration over the past Century. Then it looks into how these American Indian migrants impact the electoral outcomes of small urban areas they move to.</p>
+</details>
 
 "Tribal Legislator Behavior: Evidence from the Cherokee Nation" <span style="font-size:14px;">with **Nate Monroe**</span>
 
-Very little is known about how tribal politicians represent their constitutions in native governments. This project addresses this by examaning the vote choices of Cherokee Nation Councilors. Collecting and coding Cherokee Nation Tribal Council votes over almost 50 years, this project examines trends in how councilors vote. Then, utilizing how some Councilors are elected by at-large communities outside Cherokee land, we explore how responsive Councilors are to variation in voter preferences.
+<details>
+  <summary>Abstract</summary>
+  <p>This project investigates legislative behavior in the Cherokee Nation Council, offering one of the first systematic analyses of voting patterns in a tribal government. Using comprehensive roll-call records from 1975 to the present, it explores three core questions: how councilors introduce and pass legislation, how ideological dimensions structure disagreement, and whether conflicts emerge around at-large representation and distributive spending. The study begins with descriptive analysis of bill sponsorship, passage rates, and vote margins, then applies the NOMINATE algorithm to assess the dimensionality of Cherokee politics. Finally, it tests hypotheses about the effects of at-large councilors—who represent citizens outside the Nation’s boundaries—and the politics of pork spending. By opening the “black box” of tribal legislatures, this project situates American Indian lawmaking within broader theories of representation, coalition-building, and institutional conflict, while also producing a replicable dataset for future research on Native governance.</p>
+</details>
