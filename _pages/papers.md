@@ -37,7 +37,7 @@ NR Brouwer (2024), "Exploring the Influence of Tribal Governance Capacity: Evide
 </div> 
 
 <p style="text-align: center;">
-  <img src="/files/images/mn_map_clean.jpg" class="hover-zoom" width="150">
+  <img src="/files/images/aibb_map_display.jpg" class="hover-zoom" width="150">
 </p>
 
 <h3> NIMBYs, YIMBYs, and the Politics of Land Use in American Cities</h3>
@@ -54,13 +54,13 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 **JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/brouwer_jmp_power_to_prosper.pdf" class="btn" >Download</a> 
 
 <p style="text-align: center;">
-  <img src="/files/images/main_results_dyefs_ife_10.1.25.jpg" class="hover-zoom" width="150">
+  <img src="/files/images/sgc_effect_display.jpg" class="hover-zoom" width="150">
 </p>
 
 "Tools To Persuade: Exploring Tribal Engagement and the Politics of Federal Support" <span style="font-size:14px;">with **Tessa Provins**</span> <a href="/files/pdf/Brouwer_and_Provins__Native_Government_Allocation.pdf" class="btn" >Download</a> 
  
  <p style="text-align: center;">
-  <img src="/files/images/doipaper_fuding_region.jpg" class="hover-zoom" width="150">
+  <img src="/files/images/doi_distro_display.jpg" class="hover-zoom" width="150">
 </p>
 
 ## Early Stage Projects 
