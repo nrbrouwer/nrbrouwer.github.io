@@ -42,4 +42,4 @@ As part of UC Merced's California Senate simulation course, students are assigne
 This project is still in very early stages to get to a minimal viable product, but feel free to check out the development by clicking the button below. Once the project is more developed, if you have any suggestions on additions you would like to see, please feel free to contact me!
 
 
-<a href="https://nrbrouwer.com/ca_senate_sim/" class="btn">Simulation Legislation Tracker</a>
+<a href="https://ucmlegsim.com/" class="btn">Simulation Legislation Tracker</a>
