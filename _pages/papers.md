@@ -80,11 +80,11 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 ## Working Papers 
 ---
 
-**JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/brouwer_jmp_power_to_prosper.pdf" class="btn" >Download</a> 
+**JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/brouwer_JMP_10_22_25.pdf" class="btn" >Download</a> 
 
 <details>
   <summary>Abstract</summary>
-  <p>American politics has always stood out, and is often celebrated, for the large role local governments play. Yet the study of local politics is replete with examples of local power gone wrong, where government bodies are too weak or too captured to act for the better good of the community. This paper asks whether the distributed nature of power in the U.S. is an economic boon or burden. To answer this question, I look at one of the most significant expansions of local power in the modern U.S.: American Indian tribal governments. Constructing the largest public dataset on reservation economies, combining nearly forty years of annual remote sensing data to estimate economic development on over 300 reservations, I analyze how the expansion of tribal self-governance power impacted reservation economies. I find that tribal self-governance reduced economic development on average, although the effect fades over time. Using different measures of tribal governance capacity and political institutions, I find tentative evidence for a governance capacity mechanism.</p>
+  <p>American politics has always stood out, and is often celebrated, for the large role local governments play. Yet the study of local politics is replete with examples of local power gone wrong, where government bodies are too weak or too captured to act for the better good of the community. This paper asks whether the distributed nature of power in the U.S. is an economic boon or burden. To answer this question, I look at one of the most significant expansions of local power in the modern U.S.: American Indian tribal governments. Constructing the largest public dataset on reservation economies, combining nearly forty years of annual remote sensing data to estimate economic development on over 300 reservations, I analyze how the expansion of tribal self-governance power impacted reservation economies. I find that tribal self-governance reduced economicdevelopmentonaverage, although the effect fades overtime. Using different measures of tribal governance capacity and political institutions, I find tentative evidence for a governance capacity mechanism.</p>
 </details>
 
 <p style="text-align: center;">

@@ -7,9 +7,9 @@ redirect_from:
   - /resume
 ---
 
-You can download a PDF copy of my CV [here](/files/pdf/brouwer_cv_9_16_25.pdf).
+You can download a PDF copy of my CV [here](/files/pdf/brouwer_CV_10_26_25.pdf).
 
-<iframe src="/files/pdf/brouwer_cv_9_16_25.pdf#toolbar=1&navpanes=1&scrollbar=1" 
+<iframe src="/files/pdf/brouwer_CV_10_26_25.pdf#toolbar=1&navpanes=1&scrollbar=1" 
         width="100%" 
         height="500" 
         frameborder="no" 
