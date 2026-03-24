@@ -80,7 +80,7 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 ## Working Papers 
 ---
 
-**JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/brouwer_JMP_10_22_25.pdf" class="btn" >Download</a> 
+**JMP** "Power to Prosper: Self-Governance and Economic Development" <a href="/files/pdf/Power_to_Prosper_Self_Governance_and_Economic_Development_20_2_36.pdf" class="btn" >Download</a> 
 
 <details>
   <summary>Abstract</summary>
