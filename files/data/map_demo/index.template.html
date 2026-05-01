@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>AIAN Population by Census Tract (2020)</title>
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/pmtiles@3.2.1/dist/pmtiles.js"></script>
+<style>
+  body { margin:0; padding:0; font-family: system-ui, -apple-system, sans-serif; }
+  #map    { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+  #footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 6px 12px;
+            font-size: 12px; color: #555; background: rgba(255,255,255,0.92);
+            border-top: 1px solid #ddd; z-index: 5; }
+  .control-card { background: white; padding: 8px 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+                  border-radius: 4px; font-size: 12px; line-height: 1.5; }
+  .legend  { background: white; padding: 8px 10px; box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+             border-radius: 4px; font-size: 12px; line-height: 1.4; max-width: 220px; }
+  .swatch  { display: inline-block; width: 18px; height: 12px; margin-right: 6px;
+             vertical-align: middle; border: 1px solid #999; }
+  .legend-toggle a { padding: 4px 10px; font-size: 12px; text-decoration: none;
+                     color: #333; display: block; background: white;
+                     box-shadow: 0 1px 5px rgba(0,0,0,0.4); border-radius: 4px; }
+  .maplibregl-popup-content { font-size: 12px; line-height: 1.4; }
+  .maplibregl-popup.tribal-hover .maplibregl-popup-content {
+    padding: 4px 8px; font-size: 11px; pointer-events: none;
+    background: rgba(60,40,20,0.92); color: #fff; box-shadow: none;
+    border-radius: 3px;
+  }
+  .maplibregl-popup.tribal-hover .maplibregl-popup-tip { display: none; }
+  .popup-divider { border-top: 1px solid #ddd; margin: 6px 0; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="footer">
+Click any tract or reservation for population counts. The control panel (upper
+left) toggles tract coloring (urban&ndash;rural type, share of national AIAN
+population, or local AIAN concentration), state lines, and tribal lands. The
+buffer slider expands each reservation by up to 20 miles and recomputes
+population counts to include people living within the buffered area. Note: a
+person living near multiple reservations is counted toward each of them, so
+buffered population totals do not sum cleanly across reservations &mdash; they
+are intended to answer "how many people live within X miles of <em>this</em>
+reservation." Source: 2020 Decennial Census (NHGIS), USDA ERS RUCA codes
+(2020), and TIGER/Line. Excludes Puerto Rico, other US territories, and
+Hawaiian Home Lands.
+</div>
+<script>
+const RUCA_LABELS        = __RUCA_LABELS_JSON__;
+const NATIONAL_ALONE     = __NATIONAL_ALONE__;
+const NATIONAL_COMBINED  = __NATIONAL_COMBINED__;
+const AIANHH_LOOKUP      = __AIANHH_LOOKUP_JSON__;
+const LIGHTEST_SHARE_COLOR = __LIGHTEST_SHARE_COLOR__;
+const TRACT_FILL_OPACITY = 0.7;
+
+const protocol = new pmtiles.Protocol();
+maplibregl.addProtocol("pmtiles", protocol.tile);
+
+const rucaColorExpr = [
+  'match',
+  ['to-number', ['get', 'ruca']],
+  __RUCA_MATCH_CASES__,
+  '#cccccc'
+];
+
+const rucaOpacityExpr = [
+  'case',
+  ['==', ['to-number', ['get', 'ruca']], 99], 0.25,
+  TRACT_FILL_OPACITY
+];
+
+// Helper for the three share expressions: short-circuit empty values to the
+// lightest palette color, otherwise interpolate the log10 of the ratio.
+function shareExpr(numProp, denExpr, stopsArray) {
+  return [
+    'case',
+    ['<=', ['to-number', ['get', numProp]], 0], LIGHTEST_SHARE_COLOR,
+    ['interpolate', ['linear'],
+      ['log10', ['/', ['to-number', ['get', numProp]], denExpr]],
+      ...stopsArray
+    ]
+  ];
+}
+
+// Stops arrays are emitted as a flat sequence by R; wrap them into JS arrays.
+const aloneStops          = [__ALONE_STOPS__];
+const combinedStops       = [__COMBINED_STOPS__];
+const localAloneStops     = [__LOCAL_ALONE_STOPS__];
+const localCombinedStops  = [__LOCAL_COMBINED_STOPS__];
+
+const shareAloneColorExpr    = shareExpr('ai_alone',
+                                         NATIONAL_ALONE,    aloneStops);
+const shareCombinedColorExpr = shareExpr('ai_alone_or_plus_one_other',
+                                         NATIONAL_COMBINED, combinedStops);
+
+// Local concentration: linear interpolation on the raw ratio numerator/total_pop.
+function localExpr(numProp, stopsArray) {
+  return [
+    'case',
+    ['<=', ['to-number', ['get', 'total_pop']], 0], LIGHTEST_SHARE_COLOR,
+    ['interpolate', ['linear'],
+      ['/', ['to-number', ['get', numProp]],
+            ['to-number', ['get', 'total_pop']]],
+      ...stopsArray
+    ]
+  ];
+}
+
+const localAloneColorExpr    = localExpr('ai_alone',                   localAloneStops);
+const localCombinedColorExpr = localExpr('ai_alone_or_plus_one_other', localCombinedStops);
+
+const map = new maplibregl.Map({
+  container: 'map',
+  hash: false,
+  style: {
+    version: 8,
+    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+    sources: {
+      basemap: {
+        type: 'raster',
+        tiles: [
+          'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+          'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+          'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+        ],
+        tileSize: 256,
+        attribution: '&copy; CartoDB &copy; OpenStreetMap contributors'
+      },
+      tracts: {
+        type: 'vector',
+        url: 'pmtiles://./tracts.pmtiles'
+      },
+      states: {
+        type: 'geojson',
+        data: 'states.geojson'
+      },
+      aianhh: {
+        type: 'geojson',
+        data: 'aianhh_buffers.geojson'
+      }
+    },
+    layers: [
+      { id: 'basemap-layer', type: 'raster', source: 'basemap' },
+      {
+        id: 'tracts-fill',
+        type: 'fill',
+        source: 'tracts',
+        'source-layer': 'tracts',
+        paint: {
+          'fill-color':   rucaColorExpr,
+          'fill-opacity': rucaOpacityExpr
+        }
+      },
+      {
+        id: 'tracts-line',
+        type: 'line',
+        source: 'tracts',
+        'source-layer': 'tracts',
+        minzoom: 8,
+        paint: {
+          'line-color':   '#888',
+          'line-width':   ['interpolate', ['linear'], ['zoom'], 8, 0.3, 12, 0.9],
+          'line-opacity': ['interpolate', ['linear'], ['zoom'], 8, 0.4, 10, 0.7]
+        }
+      },
+      {
+        id: 'aianhh-buffer-fill',
+        type: 'fill',
+        source: 'aianhh',
+        filter: ['==', ['get', 'buf_miles'], -1],   // hidden until slider > 0
+        paint: {
+          'fill-color':   '#8b5a2b',
+          'fill-opacity': 0.12
+        }
+      },
+      {
+        id: 'aianhh-buffer-line',
+        type: 'line',
+        source: 'aianhh',
+        filter: ['==', ['get', 'buf_miles'], -1],
+        paint: {
+          'line-color':     '#8b5a2b',
+          'line-width':     1,
+          'line-dasharray': [4, 3],
+          'line-opacity':   0.7
+        }
+      },
+      {
+        id: 'aianhh-original-fill',
+        type: 'fill',
+        source: 'aianhh',
+        filter: ['==', ['get', 'buf_miles'], 0],
+        paint: {
+          'fill-color':   '#8b5a2b',
+          'fill-opacity': 0.30
+        }
+      },
+      {
+        id: 'aianhh-original-line',
+        type: 'line',
+        source: 'aianhh',
+        filter: ['==', ['get', 'buf_miles'], 0],
+        paint: {
+          'line-color':   '#5a3a1c',
+          'line-width':   1.4,
+          'line-opacity': 0.85
+        }
+      },
+      {
+        id: 'states-line',
+        type: 'line',
+        source: 'states',
+        layout: { visibility: 'visible' },
+        paint: {
+          'line-color':   '#222',
+          'line-width':   ['interpolate', ['linear'], ['zoom'], 2, 0.6, 6, 1.4, 10, 2.0],
+          'line-opacity': 0.85
+        }
+      }
+    ]
+  },
+  bounds: [[-170, 18], [-66, 65]],
+  fitBoundsOptions: { padding: 0 }
+});
+
+map.addControl(new maplibregl.NavigationControl(), 'top-right');
+
+// Top-level mode + per-mode sub-mode. The two sub-modes are independent:
+// switching alone↔combined under "Tract concentration" doesn't affect the
+// "Share of national" choice, and vice versa.
+let topMode       = 'share';   // 'ruca' | 'share' | 'local'
+let shareSub      = 'alone';   // 'alone' | 'combined'  — only active under share
+let localSub      = 'alone';   // 'alone' | 'combined'  — only active under local
+let legendHidden  = false;
+
+// Tract layer is independently toggleable.
+let tractsVisible = true;
+
+function applyTractsState() {
+  const vis = tractsVisible ? 'visible' : 'none';
+  ['tracts-fill', 'tracts-line'].forEach(id => {
+    map.setLayoutProperty(id, 'visibility', vis);
+  });
+}
+
+// Tribal-land state (independent of the tract layer).
+let tribalVisible = true;
+let bufferMiles   = 0;
+
+function applyTribalState() {
+  const origVis = tribalVisible ? 'visible' : 'none';
+  ['aianhh-original-fill', 'aianhh-original-line'].forEach(id => {
+    map.setLayoutProperty(id, 'visibility', origVis);
+  });
+  const showBuf = tribalVisible && bufferMiles > 0;
+  const bufVis  = showBuf ? 'visible' : 'none';
+  ['aianhh-buffer-fill', 'aianhh-buffer-line'].forEach(id => {
+    map.setLayoutProperty(id, 'visibility', bufVis);
+  });
+  if (showBuf) {
+    map.setFilter('aianhh-buffer-fill',
+                  ['==', ['get', 'buf_miles'], bufferMiles]);
+    map.setFilter('aianhh-buffer-line',
+                  ['==', ['get', 'buf_miles'], bufferMiles]);
+  }
+}
+
+function effectiveSub() {
+  if (topMode === 'share') return shareSub;
+  if (topMode === 'local') return localSub;
+  return null;
+}
+
+function effectiveMode() {
+  if (topMode === 'share' || topMode === 'local') {
+    return topMode + '_' + effectiveSub();
+  }
+  return topMode;   // 'ruca'
+}
+
+class ColorControl {
+  onAdd(map) {
+    this._map = map;
+    const div = document.createElement('div');
+    div.className = 'maplibregl-ctrl control-card';
+    div.innerHTML = `
+      <label><input type="checkbox" id="tracts-toggle" checked><strong> Show census tracts</strong></label>
+      <div id="tracts-color-options" style="margin-top:4px;">
+        Color tracts by:<br/>
+        <label><input type="radio" name="cm" value="ruca"> Urban&ndash;rural type</label><br/>
+        <label><input type="radio" name="cm" value="share" checked> Share of national AIAN pop.</label>
+        <div style="margin-left:18px;font-size:11px;line-height:1.4;">
+          <label><input type="radio" name="sm-share" value="alone" checked> AIAN alone</label><br/>
+          <label><input type="radio" name="sm-share" value="combined"> AIAN alone or + one other</label>
+        </div>
+        <label><input type="radio" name="cm" value="local"> Tract AIAN concentration</label>
+        <div style="margin-left:18px;font-size:11px;line-height:1.4;">
+          <label><input type="radio" name="sm-local" value="alone"> AIAN alone</label><br/>
+          <label><input type="radio" name="sm-local" value="combined"> AIAN alone or + one other</label>
+        </div>
+      </div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid #ddd;">
+        <label><input type="checkbox" id="tribal-toggle" checked><strong> Show tribal lands</strong></label>
+        <div style="margin-left:18px;font-size:11px;line-height:1.4;margin-top:4px;">
+          Color by:<br/>
+          <label><input type="radio" name="tribal-color" value="solid" checked> Solid</label><br/>
+          <label><input type="radio" name="tribal-color" value="share"> AIAN share of population</label>
+        </div>
+        <div style="margin-left:18px;font-size:11px;line-height:1.4;margin-top:4px;">
+          Buffer: <span id="buffer-display">0 mi</span><br/>
+          <input type="range" id="buffer-slider" min="0" max="20" step="5" value="0"
+                 style="width:140px;display:block;margin-top:2px;">
+        </div>
+      </div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid #ddd;">
+        <label><input type="checkbox" id="states-toggle" checked><strong> Show state lines</strong></label>
+      </div>
+    `;
+    div.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    // Sync the radio UI to the current state. The active top mode shows its
+    // sub-mode selection; the inactive top mode's sub-radios are cleared so
+    // the user only sees a check-mark for whichever map is being viewed.
+    function syncRadios() {
+      div.querySelectorAll('input[name="cm"]').forEach(r => {
+        r.checked = (r.value === topMode);
+      });
+      div.querySelectorAll('input[name="sm-share"]').forEach(r => {
+        r.checked = (topMode === 'share' && r.value === shareSub);
+      });
+      div.querySelectorAll('input[name="sm-local"]').forEach(r => {
+        r.checked = (topMode === 'local' && r.value === localSub);
+      });
+    }
+
+    div.querySelectorAll('input[name="cm"]').forEach(input => {
+      input.addEventListener('change', e => {
+        topMode = e.target.value;
+        syncRadios();
+        applyMode();
+      });
+    });
+    div.querySelectorAll('input[name="sm-share"]').forEach(input => {
+      input.addEventListener('change', e => {
+        shareSub = e.target.value;
+        topMode  = 'share';   // implicit: clicking a share sub-option views share
+        syncRadios();
+        applyMode();
+      });
+    });
+    div.querySelectorAll('input[name="sm-local"]').forEach(input => {
+      input.addEventListener('change', e => {
+        localSub = e.target.value;
+        topMode  = 'local';   // implicit: clicking a local sub-option views local
+        syncRadios();
+        applyMode();
+      });
+    });
+    div.querySelector('#tracts-toggle').addEventListener('change', e => {
+      tractsVisible = e.target.checked;
+      applyTractsState();
+      refreshLegends();
+      // Grey out the colour-mode controls when tracts are hidden.
+      const opts = div.querySelector('#tracts-color-options');
+      if (opts) opts.style.opacity = tractsVisible ? '1' : '0.4';
+    });
+    div.querySelector('#states-toggle').addEventListener('change', e => {
+      map.setLayoutProperty('states-line', 'visibility',
+                            e.target.checked ? 'visible' : 'none');
+    });
+    div.querySelector('#tribal-toggle').addEventListener('change', e => {
+      tribalVisible = e.target.checked;
+      applyTribalState();
+    });
+    const slider  = div.querySelector('#buffer-slider');
+    const display = div.querySelector('#buffer-display');
+    slider.addEventListener('input', e => {
+      bufferMiles = Number(e.target.value);
+      display.textContent = bufferMiles + ' mi';
+      applyTribalState();
+      // Live-refresh the open popup so tribal counts track the slider.
+      renderActivePopup();
+    });
+    this._container = div;
+    return div;
+  }
+  onRemove() { this._container.parentNode.removeChild(this._container); this._map = undefined; }
+}
+map.addControl(new ColorControl(), 'top-left');
+
+class HtmlControl {
+  constructor(html, className) { this._html = html; this._className = className; }
+  onAdd(map) {
+    this._map = map;
+    const div = document.createElement('div');
+    div.className = 'maplibregl-ctrl ' + this._className;
+    div.innerHTML = this._html;
+    this._container = div;
+    return div;
+  }
+  onRemove() { this._container.parentNode.removeChild(this._container); this._map = undefined; }
+}
+const rucaLegendCtrl  = new HtmlControl(__RUCA_LEGEND_HTML_JSON__,  'legend ruca-legend');
+const shareLegendCtrl = new HtmlControl(__SHARE_LEGEND_HTML_JSON__, 'legend share-legend');
+const localLegendCtrl = new HtmlControl(__LOCAL_LEGEND_HTML_JSON__, 'legend local-legend');
+map.addControl(rucaLegendCtrl,  'bottom-right');
+map.addControl(shareLegendCtrl, 'bottom-right');
+map.addControl(localLegendCtrl, 'bottom-right');
+
+// Hide all legends except the share one (initial mode is share_alone).
+setTimeout(() => {
+  const rl = document.querySelector('.ruca-legend');  if (rl) rl.style.display = 'none';
+  const ll = document.querySelector('.local-legend'); if (ll) ll.style.display = 'none';
+}, 0);
+
+class LegendToggle {
+  onAdd(map) {
+    this._map = map;
+    const div = document.createElement('div');
+    div.className = 'maplibregl-ctrl legend-toggle';
+    const a = document.createElement('a');
+    a.href = '#';
+    a.innerHTML = 'Hide legend';
+    a.onclick = (e) => {
+      e.preventDefault();
+      legendHidden = !legendHidden;
+      a.innerHTML  = legendHidden ? 'Show legend' : 'Hide legend';
+      refreshLegends();
+    };
+    div.appendChild(a);
+    this._container = div;
+    return div;
+  }
+  onRemove() { this._container.parentNode.removeChild(this._container); this._map = undefined; }
+}
+map.addControl(new LegendToggle(), 'bottom-left');
+
+function refreshLegends() {
+  const mode = effectiveMode();
+  const rl = document.querySelector('.ruca-legend');
+  const sl = document.querySelector('.share-legend');
+  const ll = document.querySelector('.local-legend');
+  if (!rl || !sl || !ll) return;
+  if (legendHidden || !tractsVisible) {
+    rl.style.display = 'none';
+    sl.style.display = 'none';
+    ll.style.display = 'none';
+    return;
+  }
+  rl.style.display = (mode === 'ruca')                ? '' : 'none';
+  sl.style.display = (mode.indexOf('share_') === 0)   ? '' : 'none';
+  ll.style.display = (mode.indexOf('local_') === 0)   ? '' : 'none';
+}
+
+function applyMode() {
+  const mode = effectiveMode();
+  let colorExpr, opacityExpr = TRACT_FILL_OPACITY;
+  if (mode === 'ruca') {
+    colorExpr   = rucaColorExpr;
+    opacityExpr = rucaOpacityExpr;
+  } else if (mode === 'share_alone')    colorExpr = shareAloneColorExpr;
+    else if (mode === 'share_combined') colorExpr = shareCombinedColorExpr;
+    else if (mode === 'local_alone')    colorExpr = localAloneColorExpr;
+    else if (mode === 'local_combined') colorExpr = localCombinedColorExpr;
+  map.setPaintProperty('tracts-fill', 'fill-color',   colorExpr);
+  map.setPaintProperty('tracts-fill', 'fill-opacity', opacityExpr);
+  refreshLegends();
+}
+
+// Apply initial state once the style is fully loaded.
+map.once('load', () => {
+  applyMode();
+  applyTractsState();
+  applyTribalState();
+});
+
+function fmtN(x) {
+  if (x == null || isNaN(x)) return '—';
+  return Number(x).toLocaleString();
+}
+function fmtRatioPct(num, den, digits) {
+  if (num == null || den == null || isNaN(num) || isNaN(den)) return null;
+  if (num <= 0 || den <= 0) return null;
+  return ((num / den) * 100).toFixed(digits) + '%';
+}
+
+// ----- Popup builders ------------------------------------------------------
+
+function buildTractSection(props) {
+  const rucaCode    = String(props.ruca);
+  const ai_alone    = Number(props.ai_alone);
+  const ai_plus_one = Number(props.ai_plus_one_other);
+  const ai_combined = Number(props.ai_alone_or_plus_one_other);
+  const total_pop   = Number(props.total_pop);
+
+  const pctAloneNat    = fmtRatioPct(ai_alone,    NATIONAL_ALONE,    4);
+  const pctCombinedNat = fmtRatioPct(ai_combined, NATIONAL_COMBINED, 4);
+  const pctLocal       = fmtRatioPct(ai_combined, total_pop,         2);
+
+  let html = '<strong>Tract ' + props.tract_fips + '</strong><br/>'
+    + 'Type: ' + (RUCA_LABELS[rucaCode] || ('RUCA ' + rucaCode)) + '<br/>'
+    + 'Total population: ' + fmtN(total_pop) + '<br/>'
+    + 'AIAN alone: ' + fmtN(ai_alone);
+  if (pctAloneNat) html += '<br/>&nbsp;&nbsp;&bull; ' + pctAloneNat + ' of national AIAN alone';
+  html += '<br/>AIAN + one other: ' + fmtN(ai_plus_one);
+  html += '<br/>AIAN alone or + one other: ' + fmtN(ai_combined);
+  if (pctCombinedNat) html += '<br/>&nbsp;&nbsp;&bull; ' + pctCombinedNat + ' of national AIAN combined';
+  if (pctLocal)       html += '<br/>&nbsp;&nbsp;&bull; ' + pctLocal       + ' of tract population';
+  return html;
+}
+
+function buildTribalSection(code) {
+  const rec = AIANHH_LOOKUP[code];
+  if (!rec) return '';
+  const pops = rec.pops[String(bufferMiles)] || rec.pops['0'];
+  const bufLabel = (bufferMiles === 0)
+    ? 'On reservation'
+    : ('Within ' + bufferMiles + ' mi of reservation');
+  let html = '<strong>' + (rec.name || code) + '</strong><br/>'
+    + '<span style="color:#666;">' + bufLabel + '</span><br/>'
+    + 'Total population: ' + fmtN(pops.total_pop) + '<br/>'
+    + 'AIAN alone: ' + fmtN(pops.ai_alone) + '<br/>'
+    + 'AIAN + one other: ' + fmtN(pops.ai_plus_one_other) + '<br/>'
+    + 'AIAN alone or + one other: ' + fmtN(pops.ai_alone_or_plus_one_other);
+  const pctLocal = fmtRatioPct(pops.ai_alone_or_plus_one_other,
+                               pops.total_pop, 1);
+  if (pctLocal) html += '<br/>&nbsp;&nbsp;&bull; ' + pctLocal + ' of population in this area';
+  return html;
+}
+
+// ----- Combined click popup (tract + tribal) ------------------------------
+//
+// We track the open popup so the slider can refresh its tribal section
+// without making the user re-click.
+
+let activePopup    = null;
+let activePopupCtx = null;   // { lngLat, tractProps?, tribalCode? }
+
+function renderActivePopup() {
+  if (!activePopup || !activePopupCtx) return;
+  const parts = [];
+  if (activePopupCtx.tractProps) parts.push(buildTractSection(activePopupCtx.tractProps));
+  if (activePopupCtx.tribalCode) parts.push(buildTribalSection(activePopupCtx.tribalCode));
+  if (!parts.length) { activePopup.remove(); return; }
+  activePopup.setHTML(parts.join('<div class="popup-divider"></div>'));
+}
+
+map.on('click', (e) => {
+  // Hide hover tooltip during click handling
+  hoverPopup.remove();
+
+  // queryRenderedFeatures only returns features from currently visible layers,
+  // so toggling tracts/tribal off automatically excludes them.
+  const tractLayers   = ['tracts-fill'];
+  const tribalLayers  = ['aianhh-original-fill', 'aianhh-buffer-fill'];
+  const tractHits  = map.queryRenderedFeatures(e.point, { layers: tractLayers  });
+  const tribalHits = map.queryRenderedFeatures(e.point, { layers: tribalLayers });
+
+  const tractProps = tractHits.length ? tractHits[0].properties : null;
+  // Multiple tribal layers may both return the same reservation; just take the first.
+  const tribalCode = tribalHits.length ? tribalHits[0].properties.AIANNHCE : null;
+
+  if (!tractProps && !tribalCode) {
+    if (activePopup) { activePopup.remove(); activePopup = null; activePopupCtx = null; }
+    return;
+  }
+
+  if (activePopup) activePopup.remove();
+  activePopupCtx = { lngLat: e.lngLat, tractProps: tractProps, tribalCode: tribalCode };
+  activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: '320px' })
+    .setLngLat(e.lngLat)
+    .setHTML('')
+    .addTo(map);
+  activePopup.on('close', () => { activePopup = null; activePopupCtx = null; });
+  renderActivePopup();
+});
+
+// Cursor + hover label for reservations -----------------------------------
+const hoverPopup = new maplibregl.Popup({
+  closeButton: false, closeOnClick: false, offset: [0, -8],
+  className: 'tribal-hover'
+});
+
+function tribalHoverHandler(e) {
+  if (!e.features || !e.features.length) return;
+  const code = e.features[0].properties.AIANNHCE;
+  const rec  = AIANHH_LOOKUP[code];
+  if (!rec) return;
+  hoverPopup.setLngLat(e.lngLat)
+            .setHTML(rec.name ? rec.name : code)
+            .addTo(map);
+}
+function tribalLeaveHandler() {
+  hoverPopup.remove();
+}
+
+['aianhh-original-fill', 'aianhh-buffer-fill'].forEach(layer => {
+  map.on('mousemove', layer, tribalHoverHandler);
+  map.on('mouseleave', layer, tribalLeaveHandler);
+  map.on('mouseenter', layer, () => { map.getCanvas().style.cursor = 'pointer'; });
+  map.on('mouseleave', layer, () => { map.getCanvas().style.cursor = '';        });
+});
+map.on('mouseenter', 'tracts-fill', () => { map.getCanvas().style.cursor = 'pointer'; });
+map.on('mouseleave', 'tracts-fill', () => { map.getCanvas().style.cursor = '';        });
+</script>
+</body>
+</html>
