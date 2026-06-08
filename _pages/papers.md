@@ -80,7 +80,8 @@ Brouwer, N. R., and Jessica Trounstine. "NIMBYs, YIMBYs, and the Politics of Lan
 ## Working Papers 
 ---
 
-**JMP** " Power Without Capacity? Local Self-Governance and Economic Development on American Indian Reservations" <a href="/files/pdf/power_without_capacity_18_5_26.pdf" class="btn" >Download</a> 
+**JMP** " Power Without Capacity? Local Self-Governance and Economic Development on American Indian Reservations" <a href="/files/pdf/power_without_capacity_8_June_26.pdf" class="btn" >Download</a> <a href="/files/pdf/power_without_capacity_SI_8_June_26.pdf" class="btn" >
+Supplementary Info</a> 
 
 <details>
   <summary>Abstract</summary>
