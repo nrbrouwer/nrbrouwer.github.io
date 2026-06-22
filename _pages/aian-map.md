@@ -11,4 +11,4 @@ Under the hood, it pulls Census block data from 2020 and aggregates it up to dif
 
 [**Explore the AIAN Mapping Tool**](https://aian-map-demo.netlify.app/)
 
-![Preview of the AIAN Mapping Tool](files/images/headline_reservation_grid_2020.png)
+![Preview of the AIAN Mapping Tool](/files/images/headline_reservation_grid_2020.png)
