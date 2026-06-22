@@ -9,7 +9,6 @@ People tend to have a pretty poor understanding of where American Indian and Ala
 
 Under the hood, it pulls Census block data from 2020 and aggregates it up to different geographic levels of interest: tract, place, Native area, metro, or county. Explore it interactively, and download the data from any level for your own use.
 
-[**Explore the AIAN Mapping Tool →**](https://aian-map-demo.netlify.app/)
-{: .notice--info}
+[**Explore the AIAN Mapping Tool**](https://aian-map-demo.netlify.app/)
 
-![Preview of the AIAN Mapping Tool showing the Navajo Nation](files/images/headline_reservation_grid_2020.png)
+![Preview of the AIAN Mapping Tool](files/images/headline_reservation_grid_2020.png)
