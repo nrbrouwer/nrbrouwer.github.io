@@ -2,59 +2,53 @@
 
 {% if page.author_profile or layout.author_profile or page.sidebar %}
   {% if page.author_profile or layout.author_profile %}
-    <!-- Ferrofluid: black metaballs merged by a gooey threshold filter, so the
-         mass necks, splits and reforms as the blobs drift. It sits OUTSIDE
-         .sidebar deliberately -- the ribbon needs overflow-y: auto so a short
-         screen can scroll it, and an overflow rule on the ribbon would clip
-         the fluid back to the column. As a sibling it is fixed to the viewport
-         and clips nothing. -->
+    <!-- Ferrofluid. The mass is a single filled path whose right-hand boundary
+         is a function of height and time; everything left of that line is
+         black. It sits OUTSIDE .sidebar so the ribbon can keep overflow-y:
+         auto, and takes no pointer events so it never intercepts scrolling. -->
     <div class="fluid" aria-hidden="true">
-      <svg class="fluid__defs" width="0" height="0" focusable="false">
-        <defs>
-          <filter id="goo" color-interpolation-filters="sRGB">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur"/>
-            <feColorMatrix in="blur" type="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="goo"/>
-            <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
-          </filter>
-        </defs>
+      <svg class="fluid__svg" preserveAspectRatio="none" focusable="false">
+        <path class="fluid__edge" d=""></path>
       </svg>
-      <div class="fluid__goo">
-        <span class="blob blob--slab"></span>
-        <span class="blob blob--1"></span>
-        <span class="blob blob--2"></span>
-        <span class="blob blob--3"></span>
-        <span class="blob blob--4"></span>
-        <span class="blob blob--5"></span>
-        <span class="blob blob--6"></span>
-        <span class="blob blob--7"></span>
-        <span class="blob blob--8"></span>
-        <span class="blob blob--9"></span>
-        <span class="blob blob--10"></span>
-        <span class="blob blob--11"></span>
-        <span class="blob blob--12"></span>
-        <span class="blob blob--13"></span>
-        <span class="blob blob--14"></span>
-        <span class="blob blob--15"></span>
-        <span class="blob blob--16"></span>
-        <span class="blob blob--17"></span>
-        <span class="blob blob--18"></span>
-        <span class="blob blob--19"></span>
-        <span class="blob blob--20"></span>
-        <span class="blob blob--21"></span>
-        <span class="blob blob--22"></span>
-        <span class="blob blob--23"></span>
-        <span class="blob blob--24"></span>
-        <span class="blob blob--25"></span>
-        <span class="blob blob--26"></span>
-        <span class="blob blob--27"></span>
-        <span class="blob blob--28"></span>
-        <span class="blob blob--drop-a"></span>
-        <span class="blob blob--drop-b"></span>
-        <span class="blob blob--drop-c"></span>
-        <span class="blob blob--drop-d"></span>
-      </div>
     </div>
+    <script>
+      (function () {
+        var edge = document.querySelector('.fluid__edge');
+        if (!edge) { return; }
+        var box  = edge.parentNode.parentNode;
+        var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // Five components with unrelated wavelengths and periods, half of them
+        // travelling the other way. Nothing shares a common multiple, so the
+        // profile never repeats. Reading the clock rather than counting frames
+        // is what keeps it continuous from page to page -- and never the same
+        // on two visits.
+        var waves = [
+          { amp: 11.0, len: 1320, per: 298000, dir:  1 },
+          { amp:  7.0, len:  600, per: 185000, dir: -1 },
+          { amp:  4.5, len:  295, per: 121000, dir:  1 },
+          { amp:  3.0, len:  182, per:  88000, dir: -1 },
+          { amp:  1.8, len:  113, per:  66000, dir:  1 }
+        ];
+        var TAU = Math.PI * 2, INSET = 34, STEP = 8;
+        function draw() {
+          var w = box.clientWidth, h = box.clientHeight;
+          if (w && h) {
+            var t = Date.now(), d = 'M0,0', y, i, x, v;
+            for (y = 0; y <= h + STEP; y += STEP) {
+              x = w - INSET;
+              for (i = 0; i < waves.length; i++) {
+                v = waves[i];
+                x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
+              }
+              d += ' L' + x.toFixed(1) + ',' + y;
+            }
+            edge.setAttribute('d', d + ' L0,' + (h + STEP) + ' Z');
+          }
+          if (!still) { requestAnimationFrame(draw); }
+        }
+        draw();
+      })();
+    </script>
   {% endif %}
   <div class="sidebar sticky">
   {% if page.author_profile or layout.author_profile %}{% include author-profile.html %}{% endif %}

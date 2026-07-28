@@ -347,106 +347,35 @@
    Ferrofluid
    ========================================================================== */
 
-// Black metaballs. Each blob is an ordinary rounded div; the goo filter blurs
-// the group and throws the blurred alpha through a steep contrast curve, so
-// every soft overlap becomes a hard join -- blobs neck together and pinch
-// apart like a liquid rather than sliding over one another.
+// Not blobs any more. The mass is one filled SVG path whose right-hand
+// boundary is a function of height and time -- a sum of five sine components
+// with unrelated wavelengths and periods, half of them travelling the other
+// way -- and everything to the left of that line is black. The path is
+// recomputed each frame by the small script in _includes/sidebar.html.
 //
-// Every blob shares the same ight, so at rest their outer edges line up and
-// the ribbon's right margin is straight. All of the undulation comes from the
-// animation; nothing is baked into the layout. (An earlier version staggered
-// ight across a 58px spread, which put permanent notches in the edge before
-// anything had moved -- that is what read as craters on arrival.)
-//
-// Each blob runs THREE animations on three different clocks: vertical drift
-// (the 	ranslate property), horizontal drift (	ransform) and swell
-// (scale). Those are separate CSS properties, so they compose instead of
-// overwriting one another, and the blob wanders instead of retracing one path.
-//
-// Every duration divides $ooze-cycle, which makes the whole field exactly
-// periodic over that span -- that is what lets the phase be pinned to the wall
-// clock (see --ooze-phase in _includes/head/custom.html). Every page reads the
-// same clock, so the motion carries across navigation instead of restarting,
-// and the clock is never the same twice, so each visit begins somewhere new.
-$ooze-cycle: 1800s;
-
-// (i, right, top, size, ampY, ampX, scaleMin, scaleMax, durY, durX, durScale, phase)
-$blobs:
-  ( 1, 34px,     -6%, 133px, 47px, 13px, 0.91, 1.1, 225s, 150s, 600s, 13),
-  ( 2, 34px,   -2.3%, 162px, 35px, 18px, 0.94, 1.14, 180s, 180s, 450s, 26),
-  ( 3, 34px,    1.4%, 106px, 52px, 10px, 0.9, 1.07, 150s, 200s, 360s, 39),
-  ( 4, 34px,    5.1%, 135px, 40px, 15px, 0.93, 1.11, 120s, 225s, 300s, 52),
-  ( 5, 34px,    8.8%, 164px, 57px, 20px, 0.89, 1.15, 100s, 300s, 225s, 65),
-  ( 6, 34px,   12.5%, 108px, 45px, 12px, 0.92, 1.08, 90s, 120s, 200s, 78),
-  ( 7, 34px,   16.2%, 137px, 33px, 17px, 0.88, 1.12, 225s, 150s, 600s, 91),
-  ( 8, 34px,   19.9%, 166px, 50px, 9px, 0.91, 1.16, 180s, 180s, 450s, 7),
-  ( 9, 34px,   23.6%, 110px, 38px, 14px, 0.94, 1.09, 150s, 200s, 360s, 20),
-  (10, 34px,   27.3%, 139px, 55px, 19px, 0.9, 1.13, 120s, 225s, 300s, 33),
-  (11, 34px,     31%, 168px, 43px, 11px, 0.93, 1.06, 100s, 300s, 225s, 46),
-  (12, 34px,   34.7%, 112px, 31px, 16px, 0.89, 1.1, 90s, 120s, 200s, 59),
-  (13, 34px,   38.4%, 141px, 48px, 8px, 0.92, 1.14, 225s, 150s, 600s, 72),
-  (14, 34px,   42.1%, 170px, 36px, 13px, 0.88, 1.07, 180s, 180s, 450s, 85),
-  (15, 34px,   45.8%, 114px, 53px, 18px, 0.91, 1.11, 150s, 200s, 360s, 1),
-  (16, 34px,   49.5%, 143px, 41px, 10px, 0.94, 1.15, 120s, 225s, 300s, 14),
-  (17, 34px,   53.2%, 172px, 58px, 15px, 0.9, 1.08, 100s, 300s, 225s, 27),
-  (18, 34px,   56.9%, 116px, 46px, 20px, 0.93, 1.12, 90s, 120s, 200s, 40),
-  (19, 34px,   60.6%, 145px, 34px, 12px, 0.89, 1.16, 225s, 150s, 600s, 53),
-  (20, 34px,   64.3%, 174px, 51px, 17px, 0.92, 1.09, 180s, 180s, 450s, 66),
-  (21, 34px,     68%, 118px, 39px, 9px, 0.88, 1.13, 150s, 200s, 360s, 79),
-  (22, 34px,   71.7%, 147px, 56px, 14px, 0.91, 1.06, 120s, 225s, 300s, 92),
-  (23, 34px,   75.4%, 176px, 44px, 19px, 0.94, 1.1, 100s, 300s, 225s, 8),
-  (24, 34px,   79.1%, 120px, 32px, 11px, 0.9, 1.14, 90s, 120s, 200s, 21),
-  (25, 34px,   82.8%, 149px, 49px, 16px, 0.93, 1.07, 225s, 150s, 600s, 34),
-  (26, 34px,   86.5%, 178px, 37px, 8px, 0.89, 1.11, 180s, 180s, 450s, 47),
-  (27, 34px,   90.2%, 122px, 54px, 13px, 0.92, 1.15, 150s, 200s, 360s, 60),
-  (28, 34px,   93.9%, 151px, 42px, 18px, 0.88, 1.08, 120s, 225s, 300s, 73);
-
-// stray droplets: longer throws and harder swells, so they detach from the
-// mass and are drawn back into it
-$drops:
-(drop-a,  8px, 16%, 44px,  96px, 16px, 0.72, 1.34, 150s, 200s, 300s, 11),
-  (drop-b, 14px, 42%, 36px, 112px, 12px, 0.68, 1.38, 180s, 225s, 360s, 29),
-  (drop-c,  6px, 68%, 40px, 104px, 18px, 0.70, 1.32, 120s, 180s, 450s, 47),
-  (drop-d, 12px, 88%, 34px,  90px, 14px, 0.74, 1.36, 225s, 150s, 225s, 67);
-
-// the three axes, driven off each blob's own custom properties
-@keyframes ooze-y {
-  0%, 100% { translate: 0 calc(var(--ay) * -1); }
-  50%      { translate: 0 var(--ay); }
-}
-
-@keyframes ooze-x {
-  0%, 100% { transform: translateX(calc(var(--ax) * -1)); }
-  50%      { transform: translateX(var(--ax)); }
-}
-
-@keyframes ooze-s {
-  0%, 100% { scale: var(--s0); }
-  50%      { scale: var(--s1); }
-}
+// This replaces a field of 32 divs pushed through an SVG blur filter, where
+// the silhouette was whatever the circles happened to merge into. A line is
+// both far cheaper (one path, ~115 points, no filter) and directly
+// controllable: the shape of the edge is now something we state rather than
+// something we hope for. Amplitudes total ~27px, so it undulates rather than
+// craters, and at rest the margin is straight.
 
 .fluid {
   display: none;
 }
 
-.fluid__defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-}
-
 @media screen and (min-width: $sidebar-screen-min-width) {
   .sidebar {
-    // above the masthead's 20 so the ribbon's type clears it, and above the
-    // fluid's 24. overflow-y stays auto so a short screen can scroll the
-    // ribbon -- the fluid lives outside .sidebar precisely so this is safe
+    // above the masthead's 20 and above the fluid's 24. overflow-y stays auto
+    // so a tall profile can scroll inside a short ribbon
     z-index: 25;
     overflow-y: auto;
   }
 
-  // fixed to the viewport, spanning from the screen edge out to the ribbon's
-  // right edge plus the 30px margin the blobs undulate within
+  // Fixed to the viewport, from the screen edge out to the ribbon's right edge
+  // plus the margin the line moves within. pointer-events: none matters: this
+  // covers the whole left region, and without it the overlay swallows wheel
+  // events aimed at the ribbon underneath it.
   .fluid {
     display: block;
     position: fixed;
@@ -456,65 +385,17 @@ $drops:
     width: calc(25% - 21px);
     z-index: 24;
     overflow: hidden;
+    pointer-events: none;
   }
 
-  .fluid__goo {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    filter: url("#goo");
-  }
-
-  .blob {
-    position: absolute;
+  .fluid__svg {
     display: block;
-    border-radius: 50%;
-    // Flat black, and it has to be: the goo filter composites the source
-    // colour atop the merged silhouette, so any variation within a blob --
-    // a gradient, a highlight -- shows its outline through the mass and the
-    // whole thing reads as overlapping balls instead of one body of liquid.
-    background: #000;
-    will-change: transform, translate, scale;
+    width: 100%;
+    height: 100%;
   }
 
-  // holds the ribbon's width, so the type is never over bare page
-  .blob--slab {
-    top: -8%;
-    bottom: -8%;
-    left: -14%;
-    right: 62px;
-    border-radius: 0;
-  }
-
-  @each $i, $r, $t, $sz, $ay, $ax, $s0, $s1, $dy, $dx, $ds, $ph in join($blobs, $drops) {
-    .blob--#{$i} {
-      right: $r;
-      top: $t;
-      width: $sz;
-      height: $sz;
-      --ay: #{$ay};
-      --ax: #{$ax};
-      --s0: #{$s0};
-      --s1: #{$s1};
-      animation-name: ooze-y, ooze-x, ooze-s;
-      animation-duration: $dy, $dx, $ds;
-      animation-timing-function: ease-in-out;
-      animation-iteration-count: infinite;
-      // the wall-clock phase keeps the field continuous from page to page;
-      // the per-blob offsets keep the blobs out of step with one another
-      animation-delay:
-        calc(var(--ooze-phase, 0s) - #{$ph}s),
-        calc(var(--ooze-phase, 0s) - #{$ph * 1.7}s),
-        calc(var(--ooze-phase, 0s) - #{$ph * 2.6}s);
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .blob {
-      animation: none !important;
-    }
+  .fluid__edge {
+    fill: #000;
   }
 
   /*
@@ -557,5 +438,17 @@ $drops:
 @media screen and (min-width: 1280px) {
   .fluid {
     width: calc(25% - 45px);
+  }
+}
+
+// When the viewport is too short to show the whole profile, stop pinning the
+// ribbon. A fixed element with overflow-y: auto does technically scroll, but
+// only while the pointer is over that narrow strip, which nobody discovers.
+// Letting it scroll with the page instead makes the content simply reachable.
+@media screen and (min-width: $sidebar-screen-min-width) and (max-height: 640px) {
+  .sidebar {
+    position: absolute;
+    height: auto;
+    overflow-y: visible;
   }
 }
