@@ -29,22 +29,47 @@
           var still = window.matchMedia &&
                       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           var waves = [
-            { amp: 11.0, len: 1320, per: 298000, dir:  1 },
-            { amp:  7.0, len:  600, per: 185000, dir: -1 },
-            { amp:  4.5, len:  295, per: 121000, dir:  1 },
-            { amp:  3.0, len:  182, per:  88000, dir: -1 },
-            { amp:  1.8, len:  113, per:  66000, dir:  1 }
+            { amp: 6.5, len: 1320, per: 190000, dir:  1 },
+            { amp: 4.2, len:  600, per: 120000, dir: -1 },
+            { amp: 2.8, len:  295, per:  80000, dir:  1 },
+            { amp: 1.9, len:  182, per:  60000, dir: -1 },
+            { amp: 1.2, len:  113, per:  45000, dir:  1 }
           ];
           var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
+
+          /* The cursor presses a dent into the edge: a gaussian dip centred
+             on the pointer's y, whose depth grows as the pointer nears the
+             edge. Strength and centre are eased each frame, so the dent
+             swells, follows and relaxes like the surface has tension rather
+             than snapping to the cursor. */
+          var mx = -1e4, my = -1e4, dipS = 0, dipY = 0;
+          var REACH = 150, DEPTH = 34, SIGMA = 65;
+          window.addEventListener('mousemove', function (e) {
+            mx = e.clientX; my = e.clientY;
+          }, { passive: true });
+          document.documentElement.addEventListener('mouseleave', function () {
+            mx = -1e4; my = -1e4;
+          });
+
           function draw() {
             var w = box.clientWidth, h = box.clientHeight;
             if (w > 0 && h > 0) {
-              var t = Date.now(), d = 'M0,0', y, i, x, v;
+              var restX = w - INSET;
+              var prox = 1 - Math.abs(mx - restX) / REACH;
+              if (prox < 0) { prox = 0; }
+              var target = DEPTH * prox * prox * (3 - 2 * prox);
+              dipS += (target - dipS) * 0.10;
+              dipY += (my - dipY) * (dipS > 0.5 ? 0.18 : 1);
+              var t = Date.now(), d = 'M0,0', y, i, x, v, g;
               for (y = 0; y <= h + STEP; y += STEP) {
-                x = w - INSET;
+                x = restX;
                 for (i = 0; i < waves.length; i++) {
                   v = waves[i];
                   x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
+                }
+                if (dipS > 0.5) {
+                  g = (y - dipY) / SIGMA;
+                  x -= dipS * Math.exp(-0.5 * g * g);
                 }
                 d += ' L' + x.toFixed(1) + ',' + y;
               }
