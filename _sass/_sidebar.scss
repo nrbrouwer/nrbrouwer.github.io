@@ -344,6 +344,7 @@
 }
 
 
+
 /*
    Ferrofluid
    ========================================================================== */
@@ -353,38 +354,65 @@
 // every soft overlap becomes a hard join -- blobs neck together and pinch
 // apart like a liquid rather than sliding over one another.
 //
-// The blobs are packed every ~5% down the edge and each travels a long way
-// vertically on a curved, three-point path. That matters: a blob that only
-// pulses in place leaves a permanent bulge with a permanent hollow beside it,
-// which reads as a row of craters. Blobs that migrate along the edge and past
-// each other keep the whole boundary in motion instead.
+// Each blob runs THREE animations at once on three different clocks: vertical
+// drift (the `translate` property), horizontal drift (`transform`), and swell
+// (`scale`). Those are separate CSS properties, so they compose instead of
+// overwriting each other. A single back-and-forth animation makes a blob
+// retrace one fixed path, which is what reads as "the same few spots moving";
+// three out-of-step cycles trace a wandering figure that only returns to its
+// exact starting state when all three realign.
 //
-// (i, right, top, size, mid dx/dy/scale, end dx/dy/scale, duration, delay)
-$blobs:
-  ( 1, -28px, -8%, 176px,  18px, -26px, 1.06, -14px, -52px, 0.94, 21s,  -3s),
-  ( 2,  16px, -2%, 118px, -20px,  30px, 0.90,  14px,  58px, 1.08, 27s, -14s),
-  ( 3,  -8px,  4%, 152px,  24px, -18px, 1.12, -10px,  36px, 0.92, 19s,  -7s),
-  ( 4,  30px, 10%,  96px, -16px,  34px, 0.86,  22px, -30px, 1.14, 24s, -19s),
-  ( 5, -20px, 16%, 184px,  20px,  40px, 1.04, -18px, -34px, 0.96, 30s, -11s),
-  ( 6,  22px, 22%, 110px, -24px, -28px, 1.10,  16px,  44px, 0.90, 17s, -25s),
-  ( 7, -12px, 28%, 164px,  26px, -36px, 0.94, -12px,  28px, 1.10, 26s,  -5s),
-  ( 8,  10px, 34%, 128px, -18px,  46px, 1.08,  24px, -22px, 0.88, 22s, -16s),
-  ( 9, -26px, 40%, 192px,  16px, -30px, 0.92, -20px,  50px, 1.06, 32s, -29s),
-  (10,  26px, 46%, 104px, -22px,  26px, 1.12,  18px, -40px, 0.90, 18s,  -9s),
-  (11,  -6px, 52%, 158px,  22px,  44px, 0.96, -16px, -26px, 1.10, 28s, -21s),
-  (12,  18px, 58%, 122px, -26px, -32px, 1.06,  20px,  38px, 0.92, 20s, -13s),
-  (13, -22px, 64%, 180px,  18px,  34px, 1.10, -14px, -46px, 0.94, 25s, -33s),
-  (14,  12px, 70%, 114px, -20px, -38px, 0.88,  26px,  30px, 1.12, 16s,  -6s),
-  (15, -14px, 76%, 168px,  24px, -28px, 1.04, -18px,  42px, 0.90, 29s, -17s),
-  (16,  28px, 82%, 100px, -18px,  36px, 1.14,  16px, -32px, 0.86, 23s, -27s),
-  (17, -18px, 88%, 186px,  20px, -40px, 0.94, -22px,  32px, 1.08, 31s, -10s),
-  (18,  14px, 94%, 126px, -24px,  28px, 1.08,  18px, -36px, 0.92, 19s, -23s);
+// Every duration divides $ooze-cycle. That makes the whole field exactly
+// periodic over that span, which is what lets the phase be pinned to the wall
+// clock: see --ooze-phase in _includes/head/custom.html. Because every page
+// reads the same clock the motion continues across navigation instead of
+// restarting, and because the clock is never the same twice the field is in a
+// different state on every visit.
+$ooze-cycle: 1800s;
 
-// stray droplets that break off the mass and are drawn back into it
+// (i, right, top, size, ampY, ampX, scaleMin, scaleMax, durY, durX, durScale, phase)
+$blobs:
+  ( 1, -28px, -8%, 176px, 78px, 34px, 0.86, 1.18, 45s, 30s,  75s,  3),
+  ( 2,  16px, -2%, 118px, 62px, 42px, 0.90, 1.22, 40s, 36s,  60s, 11),
+  ( 3,  -8px,  4%, 152px, 88px, 26px, 0.84, 1.14, 50s, 24s,  90s, 19),
+  ( 4,  30px, 10%,  96px, 54px, 46px, 0.92, 1.26, 36s, 45s,  50s,  7),
+  ( 5, -20px, 16%, 184px, 96px, 30px, 0.82, 1.16, 60s, 25s,  75s, 27),
+  ( 6,  22px, 22%, 110px, 70px, 38px, 0.88, 1.24, 40s, 30s, 100s, 15),
+  ( 7, -12px, 28%, 164px, 84px, 28px, 0.86, 1.12, 72s, 36s,  60s, 33),
+  ( 8,  10px, 34%, 128px, 58px, 44px, 0.90, 1.20, 36s, 50s,  90s,  5),
+  ( 9, -26px, 40%, 192px, 92px, 32px, 0.84, 1.18, 50s, 24s,  75s, 23),
+  (10,  26px, 46%, 104px, 66px, 48px, 0.92, 1.26, 45s, 30s,  50s, 13),
+  (11,  -6px, 52%, 158px, 80px, 24px, 0.86, 1.14, 60s, 45s, 100s, 29),
+  (12,  18px, 58%, 122px, 56px, 40px, 0.88, 1.22, 40s, 25s,  60s,  9),
+  (13, -22px, 64%, 180px, 90px, 34px, 0.82, 1.16, 72s, 36s,  90s, 35),
+  (14,  12px, 70%, 114px, 64px, 46px, 0.90, 1.24, 36s, 30s,  75s, 17),
+  (15, -14px, 76%, 168px, 86px, 26px, 0.84, 1.12, 50s, 45s,  50s, 25),
+  (16,  28px, 82%, 100px, 52px, 42px, 0.92, 1.20, 45s, 24s, 100s, 31),
+  (17, -18px, 88%, 186px, 94px, 30px, 0.86, 1.18, 60s, 36s,  60s, 21),
+  (18,  14px, 94%, 126px, 60px, 38px, 0.88, 1.26, 40s, 25s,  90s, 37);
+
+// stray droplets: longer throws and harder swells, so they detach from the
+// mass and are drawn back into it
 $drops:
-  (a, -46px, 20%, 44px,  34px, -40px, 1.20, -10px, -80px, 0.80, 15s,  -4s),
-  (b, -52px, 58%, 36px,  28px,  50px, 1.30,  12px,  90px, 0.70, 18s, -12s),
-  (c, -40px, 82%, 40px, -30px, -44px, 1.25,  20px, -70px, 0.85, 21s,  -8s);
+  (drop-a, -46px, 20%, 44px, 110px, 40px, 0.70, 1.35, 36s, 25s, 50s,  4),
+  (drop-b, -52px, 58%, 36px, 120px, 34px, 0.65, 1.40, 45s, 30s, 60s, 12),
+  (drop-c, -40px, 82%, 40px, 100px, 44px, 0.72, 1.32, 40s, 24s, 75s,  8);
+
+// the three axes, driven off each blob's own custom properties
+@keyframes ooze-y {
+  0%, 100% { translate: 0 calc(var(--ay) * -1); }
+  50%      { translate: 0 var(--ay); }
+}
+
+@keyframes ooze-x {
+  0%, 100% { transform: translateX(calc(var(--ax) * -1)); }
+  50%      { transform: translateX(var(--ax)); }
+}
+
+@keyframes ooze-s {
+  0%, 100% { scale: var(--s0); }
+  50%      { scale: var(--s1); }
+}
 
 .fluid {
   display: none;
@@ -439,7 +467,7 @@ $drops:
     // a gradient, a highlight -- shows its outline through the mass and the
     // whole thing reads as overlapping balls instead of one body of liquid.
     background: #000;
-    will-change: transform;
+    will-change: transform, translate, scale;
   }
 
   // holds the ribbon's width, so the type is never over bare page
@@ -451,37 +479,26 @@ $drops:
     border-radius: 0;
   }
 
-  @each $i, $r, $t, $sz, $mx, $my, $ms, $ex, $ey, $es, $dur, $delay in $blobs {
+  @each $i, $r, $t, $sz, $ay, $ax, $s0, $s1, $dy, $dx, $ds, $ph in join($blobs, $drops) {
     .blob--#{$i} {
       right: $r;
       top: $t;
       width: $sz;
       height: $sz;
-      animation: blob-#{$i} $dur ease-in-out $delay infinite alternate;
-    }
-
-    // three stops rather than two, so the path curves instead of sliding
-    // back and forth along one line
-    @keyframes blob-#{$i} {
-      0%   { transform: translate3d(0, 0, 0) scale(1); }
-      50%  { transform: translate3d($mx, $my, 0) scale($ms); }
-      100% { transform: translate3d($ex, $ey, 0) scale($es); }
-    }
-  }
-
-  @each $i, $r, $t, $sz, $mx, $my, $ms, $ex, $ey, $es, $dur, $delay in $drops {
-    .blob--drop-#{$i} {
-      right: $r;
-      top: $t;
-      width: $sz;
-      height: $sz;
-      animation: drop-#{$i} $dur ease-in-out $delay infinite alternate;
-    }
-
-    @keyframes drop-#{$i} {
-      0%   { transform: translate3d(0, 0, 0) scale(1); }
-      50%  { transform: translate3d($mx, $my, 0) scale($ms); }
-      100% { transform: translate3d($ex, $ey, 0) scale($es); }
+      --ay: #{$ay};
+      --ax: #{$ax};
+      --s0: #{$s0};
+      --s1: #{$s1};
+      animation-name: ooze-y, ooze-x, ooze-s;
+      animation-duration: $dy, $dx, $ds;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+      // the wall-clock phase keeps the field continuous from page to page;
+      // the per-blob offsets keep the blobs out of step with one another
+      animation-delay:
+        calc(var(--ooze-phase, 0s) - #{$ph}s),
+        calc(var(--ooze-phase, 0s) - #{$ph * 1.7}s),
+        calc(var(--ooze-phase, 0s) - #{$ph * 2.6}s);
     }
   }
 

@@ -24,12 +24,19 @@
 <meta name="theme-color" content="#ffffff">
 <link rel="stylesheet" href="{{ base_path }}/assets/css/academicons.css"/>
 
-<!-- Pin the ambient background's animation phase to wall-clock time, so the
-     colour stays continuous as the visitor clicks between pages (360s = one
-     full forward-and-back pass of the 180s alternating sweep). Runs before
-     first paint; without JS the animations just start from zero as before. -->
+<!-- Pin the long-running animations to wall-clock time rather than to page
+     load. Because every page reads the same clock, the background colour and
+     the ribbon's fluid both carry on from where they were instead of
+     restarting on navigation; and because the clock is never the same twice,
+     each fresh visit starts somewhere different. The moduli are the exact
+     cycle lengths (360s = one there-and-back of the 180s sweep; 1800s is the
+     common period every blob duration divides into), so the phase is
+     continuous rather than merely close. Runs before first paint; without JS
+     the animations simply start from zero as they used to. -->
 <script>
-  document.documentElement.style.setProperty('--ambient-phase', '-' + (Date.now() / 1000 % 360).toFixed(2) + 's');
+  var s = Date.now() / 1000, r = document.documentElement.style;
+  r.setProperty('--ambient-phase', '-' + (s % 360).toFixed(2) + 's');
+  r.setProperty('--ooze-phase', '-' + (s % 1800).toFixed(2) + 's');
 </script>
 
 <!-- EB Garamond webfont (site typography; see $eb-garamond in _sass/_variables.scss) -->
