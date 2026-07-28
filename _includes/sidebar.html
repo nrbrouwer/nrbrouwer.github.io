@@ -39,20 +39,20 @@
 
           /* Surface simulation: each sample point has displacement and
              momentum; forces are a weak spring to rest, tension to the
-             neighbours and heavy damping. The cursor injects momentum IN THE
-             DIRECTION OF ITS TRAVEL, so it drags the surface with it like a
-             finger through tar. Constants are set gooey: high damping and low
-             tension, so a disturbance barely rings and spreads only a short
-             way before dying. */
+             neighbours and heavy damping. The cursor injects momentum in the
+             direction of its travel, dragging the surface with it. Proximity
+             is measured to the LIVE edge -- waves and dents included -- at
+             the cursor's own height, and only within TOUCH pixels of it, so
+             the fluid answers contact with the boundary itself, not a
+             forcefield around the pointer. */
           var K = 0.003, TENSION = 0.06, DAMP = 0.88;
-          var REACH = 170, INJECT = 3.2, SGM = 55;
+          var TOUCH = 28, INJECT = 3.2, SGM = 42;
           var MAXPRESS = 30, MAXPULL = 12;
           var pos = [], mom = [];
 
-          /* On the first page of a visit the edge begins as a straight line
-             and the ambient waves grow in over eight seconds -- the pool
-             wakes up. Navigation within the visit skips the ramp so the
-             surface stays continuous from page to page. */
+          /* On the first page of a visit the edge begins straight and the
+             waves grow in over eight seconds. Navigation within the visit
+             skips the ramp so the surface stays continuous between pages. */
           var born = Date.now(), wake = !still;
           try {
             if (wake && sessionStorage.getItem('nb-oozed')) { wake = false; }
@@ -78,6 +78,15 @@
             mx = -1e4; vel = 0;
           });
 
+          function waveAt(y, t, env) {
+            var s = 0, v;
+            for (v = 0; v < waves.length; v++) {
+              s += waves[v].amp *
+                   Math.sin(TAU * (y / waves[v].len + waves[v].dir * t / waves[v].per));
+            }
+            return s * env;
+          }
+
           function draw() {
             var w = box.clientWidth, h = box.clientHeight;
             if (w > 0 && h > 0) {
@@ -87,15 +96,26 @@
                 for (i = 0; i < n; i++) { pos[i] = 0; mom[i] = 0; }
               }
               var restX = w - INSET;
+              var t = Date.now();
 
-              var prox = 1 - Math.abs(mx - restX) / REACH;
-              if (prox < 0) { prox = 0; }
-              prox = prox * prox * (3 - 2 * prox);
-              if (prox > 0 && (vel > 0.02 || vel < -0.02)) {
-                var kick = vel * INJECT * prox, g;
-                for (i = 0; i < n; i++) {
-                  g = (i * STEP - my) / SGM;
-                  mom[i] += kick * Math.exp(-0.5 * g * g);
+              var env = 1;
+              if (wake) {
+                env = (t - born) / 8000;
+                if (env >= 1) { env = 1; wake = false; }
+                else { env = env * env * (3 - 2 * env); }
+              }
+
+              var ci = Math.round(my / STEP);
+              if (ci >= 0 && ci < n && (vel > 0.02 || vel < -0.02)) {
+                var liveX = restX + waveAt(ci * STEP, t, env) + pos[ci];
+                var prox = 1 - Math.abs(mx - liveX) / TOUCH;
+                if (prox > 0) {
+                  prox = prox * prox * (3 - 2 * prox);
+                  var kick = vel * INJECT * prox, g;
+                  for (i = 0; i < n; i++) {
+                    g = (i * STEP - my) / SGM;
+                    mom[i] += kick * Math.exp(-0.5 * g * g);
+                  }
                 }
               }
               vel = vel * 0.9;
@@ -113,21 +133,10 @@
                 if (pos[i] >  MAXPULL)  { pos[i] =  MAXPULL;  mom[i] = 0; }
               }
 
-              var t = Date.now(), d = 'M0,0', x, v;
-              var env = 1;
-              if (wake) {
-                env = (t - born) / 8000;
-                if (env >= 1) { env = 1; wake = false; }
-                else { env = env * env * (3 - 2 * env); }
-              }
+              var d = 'M0,0', x;
               for (i = 0; i < n; i++) {
                 y = i * STEP;
-                x = restX;
-                for (v = 0; v < waves.length; v++) {
-                  x += env * waves[v].amp *
-                       Math.sin(TAU * (y / waves[v].len + waves[v].dir * t / waves[v].per));
-                }
-                x += pos[i];
+                x = restX + waveAt(y, t, env) + pos[i];
                 d += ' L' + x.toFixed(1) + ',' + y;
               }
               edge.setAttribute('d', d + ' L0,' + ((n - 1) * STEP) + ' Z');
