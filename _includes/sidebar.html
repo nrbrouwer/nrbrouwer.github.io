@@ -37,22 +37,23 @@
           ];
           var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
 
-          /* Surface simulation: each sample point has displacement and
-             momentum; forces are a weak spring to rest, tension to the
-             neighbours and heavy damping. The cursor injects momentum in the
-             direction of its travel, dragging the surface with it. Proximity
-             is measured to the LIVE edge -- waves and dents included -- at
-             the cursor's own height, and only within TOUCH pixels of it, so
-             the fluid answers contact with the boundary itself, not a
-             forcefield around the pointer. */
-          var K = 0.003, TENSION = 0.06, DAMP = 0.88;
-          var TOUCH = 28, INJECT = 3.2, SGM = 42;
+          /* One surface, not two layers. The lattice of points IS the edge;
+             the ambient wave shape is only a weak attractor it is forever
+             pulled toward, never snapped to. So when the cursor drags the
+             surface, the displacement is real: the ambient motion resumes
+             from where the surface actually is, oozing back toward a wave
+             target that has itself moved on -- a flattened hump does not
+             reappear, because nothing remembers it. */
+          var K = 0.002, TENSION = 0.045, DAMP = 0.84;
+          var TOUCH = 28, INJECT = 4.2, SGM = 42;
           var MAXPRESS = 30, MAXPULL = 12;
           var pos = [], mom = [];
 
-          /* On the first page of a visit the edge begins straight and the
-             waves grow in over eight seconds. Navigation within the visit
-             skips the ramp so the surface stays continuous between pages. */
+          /* First page of a visit: the surface starts straight and the wave
+             attractor fades in over eight seconds, drawing the line into
+             motion. Later pages: the surface starts already settled on the
+             attractor, which is wall-clock phased, so the edge carries over
+             from the previous page. */
           var born = Date.now(), wake = !still;
           try {
             if (wake && sessionStorage.getItem('nb-oozed')) { wake = false; }
@@ -78,37 +79,38 @@
             mx = -1e4; vel = 0;
           });
 
-          function waveAt(y, t, env) {
+          function waveAt(y, t) {
             var s = 0, v;
             for (v = 0; v < waves.length; v++) {
               s += waves[v].amp *
                    Math.sin(TAU * (y / waves[v].len + waves[v].dir * t / waves[v].per));
             }
-            return s * env;
+            return s;
           }
 
           function draw() {
             var w = box.clientWidth, h = box.clientHeight;
             if (w > 0 && h > 0) {
-              var n = Math.floor(h / STEP) + 2, i, y;
-              if (pos.length !== n) {
-                pos = new Array(n); mom = new Array(n);
-                for (i = 0; i < n; i++) { pos[i] = 0; mom[i] = 0; }
-              }
-              var restX = w - INSET;
-              var t = Date.now();
-
+              var t = Date.now(), i, y;
               var env = 1;
               if (wake) {
                 env = (t - born) / 8000;
                 if (env >= 1) { env = 1; wake = false; }
                 else { env = env * env * (3 - 2 * env); }
               }
+              var n = Math.floor(h / STEP) + 2;
+              if (pos.length !== n) {
+                pos = new Array(n); mom = new Array(n);
+                for (i = 0; i < n; i++) {
+                  pos[i] = env * waveAt(i * STEP, t);
+                  mom[i] = 0;
+                }
+              }
+              var restX = w - INSET;
 
               var ci = Math.round(my / STEP);
               if (ci >= 0 && ci < n && (vel > 0.02 || vel < -0.02)) {
-                var liveX = restX + waveAt(ci * STEP, t, env) + pos[ci];
-                var prox = 1 - Math.abs(mx - liveX) / TOUCH;
+                var prox = 1 - Math.abs(mx - (restX + pos[ci])) / TOUCH;
                 if (prox > 0) {
                   prox = prox * prox * (3 - 2 * prox);
                   var kick = vel * INJECT * prox, g;
@@ -120,24 +122,22 @@
               }
               vel = vel * 0.9;
 
-              var prev, next, acc;
+              var prev, next, acc, tgt;
               for (i = 0; i < n; i++) {
                 prev = (i > 0) ? pos[i - 1] : pos[i];
                 next = (i < n - 1) ? pos[i + 1] : pos[i];
-                acc = TENSION * (prev + next - 2 * pos[i]) - K * pos[i];
+                tgt = env * waveAt(i * STEP, t);
+                acc = TENSION * (prev + next - 2 * pos[i]) + K * (tgt - pos[i]);
                 mom[i] = (mom[i] + acc) * DAMP;
-              }
-              for (i = 0; i < n; i++) {
                 pos[i] += mom[i];
-                if (pos[i] < -MAXPRESS) { pos[i] = -MAXPRESS; mom[i] = 0; }
-                if (pos[i] >  MAXPULL)  { pos[i] =  MAXPULL;  mom[i] = 0; }
+                if (pos[i] < tgt - MAXPRESS) { pos[i] = tgt - MAXPRESS; mom[i] = 0; }
+                if (pos[i] > tgt + MAXPULL)  { pos[i] = tgt + MAXPULL;  mom[i] = 0; }
               }
 
               var d = 'M0,0', x;
               for (i = 0; i < n; i++) {
-                y = i * STEP;
-                x = restX + waveAt(y, t, env) + pos[i];
-                d += ' L' + x.toFixed(1) + ',' + y;
+                x = restX + pos[i];
+                d += ' L' + x.toFixed(1) + ',' + (i * STEP);
               }
               edge.setAttribute('d', d + ' L0,' + ((n - 1) * STEP) + ' Z');
               if (!drawn) {
