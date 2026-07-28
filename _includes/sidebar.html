@@ -44,8 +44,8 @@
              from where the surface actually is, oozing back toward a wave
              target that has itself moved on -- a flattened hump does not
              reappear, because nothing remembers it. */
-          var K = 0.002, TENSION = 0.045, DAMP = 0.84;
-          var TOUCH = 28, INJECT = 4.2, SGM = 42;
+          var K = 0.001, WAKEK = 0.004, TENSION = 0.045, DAMP = 0.84;
+          var TOUCH = 28, INJECT = 4.2, INJECTV = 3.0, SGM = 42;
           var MAXPRESS = 30, MAXPULL = 12;
           var pos = [], mom = [];
 
@@ -60,8 +60,8 @@
             if (wake) { sessionStorage.setItem('nb-oozed', '1'); }
           } catch (err) { wake = false; }
 
-          var mx = -1e4, my = -1e4, pmx = 0, pmt = 0, havePrev = false;
-          var vel = 0;
+          var mx = -1e4, my = -1e4, pmx = 0, pmy = 0, pmt = 0, havePrev = false;
+          var vel = 0, vely = 0;
           window.addEventListener('mousemove', function (e) {
             var t = e.timeStamp;
             if (havePrev) {
@@ -70,13 +70,16 @@
                 var vpm = (e.clientX - pmx) / dt;
                 if (vpm > 3) { vpm = 3; } else if (vpm < -3) { vpm = -3; }
                 vel = vel * 0.5 + vpm * 0.5;
+                var vpmy = (e.clientY - pmy) / dt;
+                if (vpmy > 3) { vpmy = 3; } else if (vpmy < -3) { vpmy = -3; }
+                vely = vely * 0.5 + vpmy * 0.5;
               }
             }
-            pmx = e.clientX; pmt = t; havePrev = true;
+            pmx = e.clientX; pmy = e.clientY; pmt = t; havePrev = true;
             mx = e.clientX; my = e.clientY;
           }, { passive: true });
           document.documentElement.addEventListener('mouseleave', function () {
-            mx = -1e4; vel = 0;
+            mx = -1e4; vel = 0; vely = 0;
           });
 
           function waveAt(y, t) {
@@ -98,6 +101,11 @@
                 if (env >= 1) { env = 1; wake = false; }
                 else { env = env * env * (3 - 2 * env); }
               }
+              /* During the wake-in the attractor is temporarily strong, so
+                 the line blooms into motion at a readable pace; it eases down
+                 to the reluctant resting K as the ramp completes. On later
+                 pages env is already 1, so kEff is simply K. */
+              var kEff = K + (WAKEK - K) * (1 - env);
               var n = Math.floor(h / STEP) + 2;
               if (pos.length !== n) {
                 pos = new Array(n); mom = new Array(n);
@@ -108,26 +116,36 @@
               }
               var restX = w - INSET;
 
+              /* Horizontal motion presses or pulls symmetrically. Vertical
+                 motion is a dipole: material piles up ahead of the stroke and
+                 a wake trails behind it, which is what a finger dragged along
+                 a thick surface does. The dipole is the gaussian's odd
+                 derivative, so an upward stroke mirrors a downward one. */
               var ci = Math.round(my / STEP);
-              if (ci >= 0 && ci < n && (vel > 0.02 || vel < -0.02)) {
+              if (ci >= 0 && ci < n &&
+                  (vel > 0.02 || vel < -0.02 || vely > 0.02 || vely < -0.02)) {
                 var prox = 1 - Math.abs(mx - (restX + pos[ci])) / TOUCH;
                 if (prox > 0) {
                   prox = prox * prox * (3 - 2 * prox);
-                  var kick = vel * INJECT * prox, g;
+                  var kickH = vel * INJECT * prox;
+                  var kickV = vely * INJECTV * prox;
+                  var g, e;
                   for (i = 0; i < n; i++) {
                     g = (i * STEP - my) / SGM;
-                    mom[i] += kick * Math.exp(-0.5 * g * g);
+                    e = Math.exp(-0.5 * g * g);
+                    mom[i] += (kickH + kickV * g) * e;
                   }
                 }
               }
               vel = vel * 0.9;
+              vely = vely * 0.9;
 
               var prev, next, acc, tgt;
               for (i = 0; i < n; i++) {
                 prev = (i > 0) ? pos[i - 1] : pos[i];
                 next = (i < n - 1) ? pos[i + 1] : pos[i];
                 tgt = env * waveAt(i * STEP, t);
-                acc = TENSION * (prev + next - 2 * pos[i]) + K * (tgt - pos[i]);
+                acc = TENSION * (prev + next - 2 * pos[i]) + kEff * (tgt - pos[i]);
                 mom[i] = (mom[i] + acc) * DAMP;
                 pos[i] += mom[i];
                 if (pos[i] < tgt - MAXPRESS) { pos[i] = tgt - MAXPRESS; mom[i] = 0; }
