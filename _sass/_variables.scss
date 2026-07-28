@@ -18,18 +18,21 @@ $sans-serif                 : -apple-system, ".SFNSText-Regular", "San Francisco
 $monospace                  : Monaco, Consolas, "Lucida Console", monospace;
 
 /* sans serif typefaces */
-$sans-serif-narrow          : $sans-serif;
+// masthead/nav lettering follows the site serif for a consistent literary
+// look; the variable keeps its historical name from the theme
+$sans-serif-narrow          : "EB Garamond", Garamond, Georgia, serif;
 $helvetica                  : Helvetica, "Helvetica Neue", Arial, sans-serif;
 
 /* serif typefaces */
+$eb-garamond                : "EB Garamond", Garamond, Georgia, serif;
 $georgia                    : Georgia, serif;
 $times                      : Times, serif;
 $bodoni                     : "Bodoni MT", serif;
 $calisto                    : "Calisto MT", serif;
 $garamond                   : Garamond, serif;
 
-$global-font-family         : $sans-serif;
-$header-font-family         : $sans-serif;
+$global-font-family         : $eb-garamond;
+$header-font-family         : $eb-garamond;
 $caption-font-family        : $serif;
 
 /* type scale */
@@ -41,6 +44,15 @@ $type-size-5                : 1em;      // ~16px
 $type-size-6                : 0.75em;   // ~12px
 $type-size-7                : 0.6875em; // ~11px
 $type-size-8                : 0.625em;  // ~10px
+
+/* rainbow used by the nav underline and button hovers; holds two full
+   spectrum cycles so a 200% background-size shows exactly one cycle and
+   the rainbow-barber keyframe (see _animations.scss) loops seamlessly */
+$rainbow-gradient: linear-gradient(90deg,
+  #ff004d 0%, #ff8a00 7.1%, #ffe600 14.3%, #2bd94f 21.4%,
+  #00b3ff 28.6%, #7a5cff 35.7%, #ff2bd1 42.9%, #ff004d 50%,
+  #ff8a00 57.1%, #ffe600 64.3%, #2bd94f 71.4%, #00b3ff 78.6%,
+  #7a5cff 85.7%, #ff2bd1 92.9%, #ff004d 100%);
 
 /* masthead properties */
 $masthead-height            : 70px;

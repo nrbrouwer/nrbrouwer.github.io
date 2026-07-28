@@ -2,7 +2,48 @@
 
 {% if page.author_profile or layout.author_profile or page.sidebar %}
   <div class="sidebar sticky">
-  {% if page.author_profile or layout.author_profile %}{% include author-profile.html %}{% endif %}
+  {% if page.author_profile or layout.author_profile %}
+    {% include author-profile.html %}
+    <!-- ferrofluid: black metaballs merged by a gooey threshold filter, so the
+         mass necks, splits and reforms as the blobs drift. The slab keeps the
+         ribbon's own width solidly covered; the blobs undulate its right edge -->
+    <div class="fluid" aria-hidden="true">
+      <svg class="fluid__defs" width="0" height="0" focusable="false">
+        <defs>
+          <filter id="goo" color-interpolation-filters="sRGB">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="15" result="blur"/>
+            <feColorMatrix in="blur" type="matrix"
+              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 24 -10" result="goo"/>
+            <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+          </filter>
+        </defs>
+      </svg>
+      <div class="fluid__goo">
+        <span class="blob blob--slab"></span>
+        <span class="blob blob--1"></span>
+        <span class="blob blob--2"></span>
+        <span class="blob blob--3"></span>
+        <span class="blob blob--4"></span>
+        <span class="blob blob--5"></span>
+        <span class="blob blob--6"></span>
+        <span class="blob blob--7"></span>
+        <span class="blob blob--8"></span>
+        <span class="blob blob--9"></span>
+        <span class="blob blob--10"></span>
+        <span class="blob blob--11"></span>
+        <span class="blob blob--12"></span>
+        <span class="blob blob--13"></span>
+        <span class="blob blob--14"></span>
+        <span class="blob blob--15"></span>
+        <span class="blob blob--16"></span>
+        <span class="blob blob--17"></span>
+        <span class="blob blob--18"></span>
+        <span class="blob blob--drop-a"></span>
+        <span class="blob blob--drop-b"></span>
+        <span class="blob blob--drop-c"></span>
+      </div>
+    </div>
+  {% endif %}
   {% if page.sidebar %}
     {% for s in page.sidebar %}
       {% if s.image %}

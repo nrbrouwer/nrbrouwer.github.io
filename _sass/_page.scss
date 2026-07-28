@@ -8,8 +8,9 @@
   margin-top: 2em;
   padding-left: 1em;
   padding-right: 1em;
-  animation: intro 0.3s both;
-  animation-delay: 0.35s;
+  // no intro fade here: a filling opacity animation makes #main an isolated
+  // stacking context forever, which blocks the figures' mix-blend-mode from
+  // seeing the ambient background (they'd render on white)
 
   @include breakpoint($x-large) {
     max-width: $x-large;
@@ -34,9 +35,45 @@
   }
 }
 
+// Book-plate divider: the title set as spaced small capitals with a hairline
+// rule running out to each side, so a one-word title like "Papers" reads as a
+// deliberate section marker instead of a word floating in the corner.
 .page__title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin-top: 0;
-  line-height: 1;
+  margin-bottom: 1.4em;
+  font-size: $type-size-3;
+  font-weight: 600;
+  // lowercase + small-caps renders every letter as a small capital, so the
+  // word has a single uniform height rather than one oversized initial
+  text-transform: lowercase;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.22em;
+  line-height: 1.3;
+  text-align: center;
+
+  // the rules absorb whatever space the title leaves. A long title (a talk
+  // or publication page) shrinks them to the min-width flourish instead of
+  // forcing an awkward wrap
+  &::before,
+  &::after {
+    content: "";
+    flex: 1 1 auto;
+    min-width: 2em;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  &::before {
+    margin-right: 1em;
+  }
+
+  // pulled in by the trailing letter-space so the word sits optically centred
+  &::after {
+    margin-left: calc(1em - 0.22em);
+  }
 
   & + .page__meta {
     margin-top: -0.5em;
@@ -72,11 +109,14 @@
     }
   }
 
-  a {
-    text-decoration: underline;
+  // no underline: links are carried by weight plus the drifting link colour
+  // (see ambient-link-drift in _base.scss). .btn keeps its own pill styling
+  a:not(.btn) {
+    text-decoration: none;
+    font-weight: 700;
 
     &:hover {
-      text-decoration: underline;
+      text-decoration: none;
 
       img {
         box-shadow: 0 0 10px rgba(#000, 0.25);
@@ -398,4 +438,19 @@
   margin-bottom: 10px;
   font-size: $type-size-6;
   text-transform: uppercase;
+}
+
+
+/*
+   Ambient-background integration
+   ========================================================================== */
+
+// Content figures are mostly plots exported with baked-in white backgrounds.
+// Multiply blending turns white into whatever color sits underneath, so the
+// figures track the ambient-drift animation instead of floating in white
+// boxes. (Photographs pick up a slight tint from the background hue, but at
+// ~95% lightness the effect is negligible.)
+.page__content img,
+.archive img {
+  mix-blend-mode: multiply;
 }

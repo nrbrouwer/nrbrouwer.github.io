@@ -19,3 +19,9 @@
     opacity: 1;
   }
 }
+
+// scrolls $rainbow-gradient by exactly one spectrum cycle; shared by the
+// nav hover underline and the pill buttons
+@keyframes rainbow-barber {
+  to { background-position-x: 100%; }
+}

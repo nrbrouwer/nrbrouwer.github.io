@@ -24,6 +24,19 @@
 <meta name="theme-color" content="#ffffff">
 <link rel="stylesheet" href="{{ base_path }}/assets/css/academicons.css"/>
 
+<!-- Pin the ambient background's animation phase to wall-clock time, so the
+     colour stays continuous as the visitor clicks between pages (360s = one
+     full forward-and-back pass of the 180s alternating sweep). Runs before
+     first paint; without JS the animations just start from zero as before. -->
+<script>
+  document.documentElement.style.setProperty('--ambient-phase', '-' + (Date.now() / 1000 % 360).toFixed(2) + 's');
+</script>
+
+<!-- EB Garamond webfont (site typography; see $eb-garamond in _sass/_variables.scss) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap" rel="stylesheet">
+
 
 <!-- Support for MatJax -->
 <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>

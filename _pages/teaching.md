@@ -2,11 +2,7 @@
 title: "Teaching"
 permalink: /teaching/
 author_profile: true
-toc: true
 ---
-
-* TOC
-{:toc}
 
 ## Teaching Assistant
 
@@ -14,26 +10,19 @@ As a PhD student, I have worked as a TA for a number courses, both undergraduate
 
 ### Graduate level
 
-- Quantitative Analysis of Political Data II (Spring 2023)
 - Advanced Causal Inference (Fall 2024)
+- Quantitative Analysis of Political Data II (Spring 2023)
 
 ### Undergraduate level
 
-- Introduction to Comparative Politics (Fall 2021, Spring 2022, Spring 2023)
-- State Legislative Simulation (Fall 2022, Fall 2025)
-- Political Violence (Summer 2022)
+- State Legislative Simulation (Fall 2022, Fall 2025, Fall 2026)
 - Introduction to American Politics (Spring 2025)
+- Introduction to Comparative Politics (Fall 2021, Spring 2022, Spring 2023)
+- Political Violence (Summer 2022)
+
 
 ## Course Tools
 
-### Protest Game
-
-For some introductory courses, I like to use simple, mutliplayer games where the whole class can participate and learn interesting political science concepts. At some point, I coded a very simple protest/coordination game in oTree which can accomodate both small and large groups. The game moves through 12 rounds where players chose to either attend or skip a protest. The payout each round is determined by both their choice as well as the level of attendance across their group.
-
-Setting up the game is not very difficult. It should take less than 30 minutes in total, Even for those unfamiliar with oTree. You can download all the necessary materials to run the game on oTree Hub from my GitHub repository, linked below. If you have any suggestions for things you would like to see in the game, please feel free to reach out!
-
-
-<a href="https://github.com/nrbrouwer/class_protest_game" class="btn">Click here for protest game</a>
 
 ### Legislative Simulation Tracker
 
@@ -43,3 +32,12 @@ This project is still in very early stages to get to a minimal viable product, b
 
 
 <a href="https://ucmlegsim.com/" class="btn">Simulation Legislation Tracker</a>
+
+### Protest Game
+
+For some introductory courses, I like to use simple, mutliplayer games where the whole class can participate and learn interesting political science concepts. At some point, I coded a very simple protest/coordination game in oTree which can accomodate both small and large groups. The game moves through 12 rounds where players chose to either attend or skip a protest. The payout each round is determined by both their choice as well as the level of attendance across their group.
+
+Setting up the game is not very difficult. It should take less than 30 minutes in total, Even for those unfamiliar with oTree. You can download all the necessary materials to run the game on oTree Hub from my GitHub repository, linked below. If you have any suggestions for things you would like to see in the game, please feel free to reach out!
+
+
+<a href="https://github.com/nrbrouwer/class_protest_game" class="btn">Click here for protest game</a>

@@ -14,11 +14,14 @@
     @include prefix(0.5 of 12);
   }
 
-  a {
-    text-decoration: underline;
+  // no underline: links are carried by weight plus the drifting link colour
+  // (see ambient-link-drift in _base.scss). .btn keeps its own pill styling
+  a:not(.btn) {
+    text-decoration: none;
+    font-weight: 700;
 
     &:hover {
-      text-decoration: underline;
+      text-decoration: none;
 
       img {
         box-shadow: 0 0 10px rgba(#000, 0.25);

@@ -172,10 +172,18 @@
    Priority plus navigation
    ========================================================================== */
 
+@media (prefers-reduced-motion: reduce) {
+  .greedy-nav a::before {
+    animation: none;
+  }
+}
+
 .greedy-nav {
   position: relative;
   min-width: 250px;
-  background: $background-color;
+  // transparent so the masthead's ambient-drift animation shows through
+  // (the .hidden-links dropdown below keeps its own solid background)
+  background: transparent;
 
   a {
     display: block;
@@ -183,9 +191,31 @@
     padding: 0.5rem 0;
     color: $masthead-link-color;
     text-decoration: none;
+    font-size: 1.15em;
+    letter-spacing: 0.02em;
+    position: relative;
+
+    // ink underline that grows outward from the center on hover; the
+    // rainbow bar below it is the theme's :before element (further down)
+    &::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0.3em;
+      height: 1px;
+      background: currentColor;
+      transform: scaleX(0);
+      transform-origin: center;
+      transition: transform 0.25s ease;
+    }
 
     &:hover {
-      color: #388e3c;
+      color: #000;
+
+      &::after {
+        transform: scaleX(1);
+      }
     }
   }
 
@@ -203,7 +233,13 @@
   }
 
   .visible-links {
+    // display: table shrink-wraps the list, which the greedy-navigation
+    // script relies on to measure overflow (a flex ul would stretch full
+    // width and make it collapse every link); auto margins center the
+    // shrink-wrapped box
     display: table;
+    margin-left: auto;
+    margin-right: auto;
 
     li {
       display: table-cell;
@@ -234,7 +270,13 @@
         left: 0;
         bottom: 0;
         height: 4px;
-        background: mix(#fff, $primary-color, 50%);
+        // full-spectrum rainbow sized to the link, so the bar always shows
+        // the entire rainbow once regardless of link width
+        background: $rainbow-gradient;
+        background-size: 200% 100%;
+        // 6s per full spectrum sweep: the gradient scrolls one link-width
+        // per cycle, so a slower rate reads as static on short links
+        animation: rainbow-barber 6s linear infinite;
         width: 100%;
         -webkit-transition: $global-transition;
         transition: $global-transition;
@@ -244,7 +286,6 @@
       }
 
       &:hover:before {
-        background: #388e3c;
         -webkit-transform: scaleX(1);
             -ms-transform: scaleX(1);
                 transform: scaleX(1); /* reveal*/

@@ -1,19 +1,83 @@
 /* ==========================================================================
    BASE ELEMENTS
    ========================================================================== */
+
+// Ambient background: pale hues sweeping diagonally across the viewport.
+// The gradient is oversized (400%) and its position drifts, so at any moment
+// the screen shows a soft diagonal blend that slowly travels across it.
+// background-attachment: fixed pins the gradient to the viewport, so the
+// fixed masthead (see _masthead.scss) paints the identical background and
+// stays seamless with the page. Reduced-motion users get the static gradient.
+$ambient-gradient: linear-gradient(135deg,
+  #f7cdd9,   // rose
+  #f9d8bb,   // peach
+  #f6e9ad,   // butter
+  #bfe8cb,   // mint
+  #bcdcf6,   // sky
+  #c8cdf7,   // periwinkle
+  #e4c8f0,   // lilac
+  #f7cdd9);  // back to rose
+
+@keyframes ambient-sweep {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 100% 100%; }
+}
+
 html {
   /* sticky footer fix */
   position: relative;
   min-height: 100%;
+  background: $ambient-gradient;
+  background-size: 400% 400%;
+  background-attachment: fixed;
+  animation: ambient-sweep 180s linear infinite alternate;
+  // set from wall-clock time by the snippet in head/custom.html, so the
+  // sweep keeps its phase across page loads instead of restarting at rose
+  animation-delay: var(--ambient-phase, 0s);
+}
+
+// Body-copy hyperlinks drift through dark complements of the ambient
+// palette on the same 180s alternate clock as the background sweep, so a
+// link's hue always sits roughly opposite the field behind it. Every stop
+// is dark enough to clear contrast on all of the pastel background hues.
+@keyframes ambient-link-drift {
+  0%    { color: #0e7a5f; }  // teal        (vs rose)
+  14.3% { color: #1f5fa8; }  // blue        (vs peach)
+  28.6% { color: #3b46b0; }  // indigo      (vs butter)
+  42.9% { color: #a8237f; }  // magenta     (vs mint)
+  57.1% { color: #b25a13; }  // burnt orange (vs sky)
+  71.4% { color: #8a6d00; }  // dark gold   (vs periwinkle)
+  85.7% { color: #3f7a1e; }  // green       (vs lilac)
+  100%  { color: #0e7a5f; }
+}
+
+.page__content a:not(.btn),
+.archive a:not(.btn) {
+  animation: ambient-link-drift 180s linear infinite alternate;
+  // same wall-clock phase as the background, so the complement-tracking
+  // holds across page loads too
+  animation-delay: var(--ambient-phase, 0s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, .masthead,
+  .page__content a:not(.btn),
+  .archive a:not(.btn) {
+    animation: none;
+  }
 }
 
 body {
   margin: 0;
   padding: $masthead-height 0 0;
-  padding-bottom: 9em;
+  // reserves room for the absolutely positioned footer, which is now a
+  // single line of type rather than a banded bar
+  padding-bottom: 4.5em;
   color: $text-color;
   font-family: $global-font-family;
-  line-height: 1.5;
+  // Garamond is light at text sizes; medium weight gives it presence
+  font-weight: 500;
+  line-height: 1.65;
 
   &.overflow--hidden {
     /* when primary navigation is visible, the content in the background won't scroll */

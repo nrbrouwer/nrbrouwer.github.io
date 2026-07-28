@@ -1,0 +1,156 @@
+/* ==========================================================================
+   PAPERS PAGE
+   ========================================================================== */
+
+/*
+   A paper entry is a two-column row: the text side (title, citation, pill
+   controls, expandable abstract) and, where one exists, an illustration
+   sitting alongside it. The illustration is always visible -- it is there
+   to give a glance at what the paper looks at, not to be opened.
+   ========================================================================== */
+
+.paper {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.6em;
+  margin: 0 0 1.75em;
+  padding-bottom: 1.5em;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.paper__body {
+  flex: 1 1 auto;
+  // lets the column shrink below its content's intrinsic width so long
+  // titles wrap instead of squeezing the illustration
+  min-width: 0;
+}
+
+.paper__title {
+  margin: 0 0 0.3em;
+  font-size: $type-size-4;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.paper__cite {
+  margin: 0 0 0.85em;
+  font-size: 0.95em;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.paper__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 0.6em;
+
+  // the theme adds bottom margin to buttons; the flex gap handles spacing
+  > .btn {
+    margin-bottom: 0;
+  }
+}
+
+/*
+   Illustration
+   ========================================================================== */
+
+.paper__figure {
+  flex: 0 0 210px;
+  // links to the full-size image; zoom-in is the only hover affordance
+  // available here, since transform/opacity/filter would each make this a
+  // stacking context and cut the image off from the ambient background it
+  // multiplies against
+  display: block;
+  cursor: zoom-in;
+  text-decoration: none !important;
+  border-bottom: 0 !important;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  // the theme shadows image links on hover; that reads as a grey haze once
+  // the image is multiplying against the ambient background
+  &:hover img {
+    box-shadow: none;
+  }
+}
+
+/*
+   Abstract disclosure
+   ========================================================================== */
+
+.paper__disclosure {
+  margin: 0;
+  flex: 0 0 auto;
+
+  // open: claims a full row so the abstract spans the text column rather
+  // than sitting in a narrow strip beside the buttons
+  &[open] {
+    flex: 1 0 100%;
+  }
+
+  > summary {
+    @include pill-button;
+    margin-bottom: 0;
+    // hides the native disclosure triangle in favour of the caret below
+    display: inline-block;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: "\25B8"; // ▸
+      display: inline-block;
+      margin-left: 0.45em;
+      transition: transform 0.2s ease;
+    }
+  }
+
+  &[open] > summary::after {
+    transform: rotate(90deg);
+  }
+}
+
+.paper__panel {
+  margin: 0.9em 0 0.2em;
+  padding: 0.1em 0 0.1em 1.1em;
+  border-left: 3px solid rgba(0, 0, 0, 0.22);
+  font-size: 0.95em;
+  line-height: 1.6;
+  animation: intro 0.25s ease-out both;
+
+  p {
+    margin: 0;
+  }
+}
+
+/*
+   Narrow screens: stack the illustration under the text
+   ========================================================================== */
+
+@media screen and (max-width: 767px) {
+  .paper {
+    display: block;
+  }
+
+  .paper__figure {
+    max-width: 260px;
+    margin: 1.2em auto 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paper__panel {
+    animation: none;
+  }
+}

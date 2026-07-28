@@ -14,10 +14,14 @@
   margin-bottom: 1em;
 
   @media screen and (min-width: $sidebar-screen-min-width) {
-    height: 100vh;
-    overflow-y: auto;               // Add scrollbar if the sidebar is too long
+    // pinned to the top of the viewport so the profile always clears the
+    // masthead by exactly its height, rather than sitting at whatever its
+    // static position happens to be
     position: fixed;
+    top: 0;
+    height: 100vh;
     padding-top: $masthead-height;
+    overflow-y: auto;               // Add scrollbar if the sidebar is too long
   }
 
   @include breakpoint($large) {
@@ -36,6 +40,35 @@
     padding-right: 0;
   }
 
+  // The grid gives this sidebar a percentage width, but it is position:
+  // fixed, so that percentage resolves against the viewport (~15% of it)
+  // while the content column's position is governed by #main, which is
+  // capped. Widening the window therefore grows the ribbon without moving
+  // the text, squeezing the gutter shut -- and actually overlapping just
+  // below 1280px. Capping the width per band keeps a real gutter at every
+  // size. #main is itself capped at 1280px, so the space reserved for the
+  // ribbon is a constant 188px below that and 264px above it -- it never
+  // grows, which is why the theme's 250px at $x-large above leaves only a
+  // 14px sliver. These caps supersede it.
+  // Centred in the band between the screen edge and the content column
+  // rather than sitting hard against #main's left edge. #main is capped, so
+  // the content column's left edge is (50vw - 264px) below 1280px and
+  // (50vw - 362px) above it; half the leftover space centres the ribbon.
+  @media screen and (min-width: $sidebar-screen-min-width) {
+    width: 155px;
+    max-width: 155px;
+    margin-left: 0;
+    // the 3.5px allows for the scrollbar, which percentage widths exclude
+    // but the content column's own centring does not
+    left: calc(25% - 206px);
+  }
+
+  @media screen and (min-width: 1280px) {
+    width: 205px;
+    max-width: 205px;
+    left: calc(25% - 280px);
+  }
+
   h2, h3, h4, h5, h6 {
     margin-bottom: 0;
     font-family: $sans-serif-narrow;
@@ -46,7 +79,7 @@
   }
 
   p, li {
-    font-family: $sans-serif;
+    font-family: $eb-garamond;
     font-size: $type-size-6;
     line-height: 1.5;
   }
@@ -90,13 +123,26 @@
   }
 
   img {
-    max-width: 175px;
-    border-radius: 50%;
+    // square, edge to edge, unframed. The circular thumbnail in a thin grey
+    // ring is the most recognisable tell of this template
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    // the source photo is taller than it is wide; crop to a true square from
+    // the top so the head keeps its headroom and the trim comes off the bottom
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: center top;
+    border-radius: 0;
+  }
 
-    @include breakpoint($large) {
-      padding: 5px;
-      border: 1px solid $border-color;
-    }
+  // rainbow hairline under the portrait, echoing the nav and buttons
+  &::after {
+    content: "";
+    display: block;
+    height: 3px;
+    background: $rainbow-gradient;
+    background-size: 200% 100%;
   }
 }
 
@@ -124,8 +170,20 @@
   }
 }
 .sidebar .author__name {
-  font-family: $sans-serif;
-  font-size: $type-size-5;
+  font-family: $eb-garamond;
+  // spaced small capitals, matching the book-plate page titles
+  font-size: $type-size-4;
+  font-weight: 600;
+  text-transform: lowercase;
+  font-variant-caps: small-caps;
+  letter-spacing: 0.13em;
+  line-height: 1.2;
+  margin: 0.75em 0 0.1em;
+}
+
+.sidebar .author__bio {
+  font-style: italic;
+  opacity: 0.75;
 }
 
 .sidebar .author__desktop {
@@ -157,7 +215,7 @@
   position: relative;
   display: table-cell;
   vertical-align: middle;
-  font-family: $sans-serif;
+  font-family: $eb-garamond;
   z-index: 10;
   position: relative;
   cursor: pointer;
@@ -239,22 +297,233 @@
     }
   }
 
+  // a ruled index rather than a stack of social buttons
   li {
     white-space: nowrap;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  // the non-link rows (location, employer) keep the same rhythm
+  li.author__desktop {
+    padding: 0.45em 0;
+    font-variant-caps: small-caps;
+    text-transform: lowercase;
+    letter-spacing: 0.09em;
+    opacity: 0.7;
   }
 
   a {
     display: block;
-    margin-bottom: 5px;
-    padding-right: 5px;
-    padding-top: 2px;
-    padding-bottom: 2px;
+    margin-bottom: 0;
+    padding: 0.45em 0;
     color: inherit;
-    font-size: $type-size-5;
+    font-size: 1.1em;
+    text-transform: lowercase;
+    font-variant-caps: small-caps;
+    letter-spacing: 0.09em;
     text-decoration: none;
+    transition: color 0.2s ease;
 
     &:hover {
-      text-decoration: underline;
+      text-decoration: none;
+      color: #000;
     }
+  }
+}
+
+// uniform ink icons instead of brand colours, so the list reads as a printed
+// index rather than a row of social badges
+.sidebar .author__urls i {
+  color: inherit;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar .author__urls a:hover i {
+  opacity: 1;
+}
+
+
+/*
+   Ferrofluid
+   ========================================================================== */
+
+// Black metaballs. Each blob is an ordinary rounded div; the goo filter blurs
+// the group and throws the blurred alpha through a steep contrast curve, so
+// every soft overlap becomes a hard join -- blobs neck together and pinch
+// apart like a liquid rather than sliding over one another.
+//
+// The blobs are packed every ~5% down the edge and each travels a long way
+// vertically on a curved, three-point path. That matters: a blob that only
+// pulses in place leaves a permanent bulge with a permanent hollow beside it,
+// which reads as a row of craters. Blobs that migrate along the edge and past
+// each other keep the whole boundary in motion instead.
+//
+// (i, right, top, size, mid dx/dy/scale, end dx/dy/scale, duration, delay)
+$blobs:
+  ( 1, -28px, -8%, 176px,  18px, -26px, 1.06, -14px, -52px, 0.94, 21s,  -3s),
+  ( 2,  16px, -2%, 118px, -20px,  30px, 0.90,  14px,  58px, 1.08, 27s, -14s),
+  ( 3,  -8px,  4%, 152px,  24px, -18px, 1.12, -10px,  36px, 0.92, 19s,  -7s),
+  ( 4,  30px, 10%,  96px, -16px,  34px, 0.86,  22px, -30px, 1.14, 24s, -19s),
+  ( 5, -20px, 16%, 184px,  20px,  40px, 1.04, -18px, -34px, 0.96, 30s, -11s),
+  ( 6,  22px, 22%, 110px, -24px, -28px, 1.10,  16px,  44px, 0.90, 17s, -25s),
+  ( 7, -12px, 28%, 164px,  26px, -36px, 0.94, -12px,  28px, 1.10, 26s,  -5s),
+  ( 8,  10px, 34%, 128px, -18px,  46px, 1.08,  24px, -22px, 0.88, 22s, -16s),
+  ( 9, -26px, 40%, 192px,  16px, -30px, 0.92, -20px,  50px, 1.06, 32s, -29s),
+  (10,  26px, 46%, 104px, -22px,  26px, 1.12,  18px, -40px, 0.90, 18s,  -9s),
+  (11,  -6px, 52%, 158px,  22px,  44px, 0.96, -16px, -26px, 1.10, 28s, -21s),
+  (12,  18px, 58%, 122px, -26px, -32px, 1.06,  20px,  38px, 0.92, 20s, -13s),
+  (13, -22px, 64%, 180px,  18px,  34px, 1.10, -14px, -46px, 0.94, 25s, -33s),
+  (14,  12px, 70%, 114px, -20px, -38px, 0.88,  26px,  30px, 1.12, 16s,  -6s),
+  (15, -14px, 76%, 168px,  24px, -28px, 1.04, -18px,  42px, 0.90, 29s, -17s),
+  (16,  28px, 82%, 100px, -18px,  36px, 1.14,  16px, -32px, 0.86, 23s, -27s),
+  (17, -18px, 88%, 186px,  20px, -40px, 0.94, -22px,  32px, 1.08, 31s, -10s),
+  (18,  14px, 94%, 126px, -24px,  28px, 1.08,  18px, -36px, 0.92, 19s, -23s);
+
+// stray droplets that break off the mass and are drawn back into it
+$drops:
+  (a, -46px, 20%, 44px,  34px, -40px, 1.20, -10px, -80px, 0.80, 15s,  -4s),
+  (b, -52px, 58%, 36px,  28px,  50px, 1.30,  12px,  90px, 0.70, 18s, -12s),
+  (c, -40px, 82%, 40px, -30px, -44px, 1.25,  20px, -70px, 0.85, 21s,  -8s);
+
+.fluid {
+  display: none;
+}
+
+.fluid__defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+@media screen and (min-width: $sidebar-screen-min-width) {
+  // above the masthead's 20 so the fluid runs to the very top of the screen.
+  // The nav's own links are centred, so none of them is covered
+  .sidebar {
+    z-index: 25;
+    // the fluid extends past the ribbon on both sides; any overflow rule
+    // would clip it back to the column
+    overflow: visible;
+  }
+
+  .fluid {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    // off the left edge of the viewport (the offset undoes the ribbon's own
+    // left position) and 30px past the ribbon on the right, which is the
+    // margin the blobs undulate within
+    left: calc(-25vw + 202px);
+    right: -30px;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .fluid__goo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    filter: url("#goo");
+  }
+
+  .blob {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    // Flat black, and it has to be: the goo filter composites the source
+    // colour atop the merged silhouette, so any variation within a blob --
+    // a gradient, a highlight -- shows its outline through the mass and the
+    // whole thing reads as overlapping balls instead of one body of liquid.
+    background: #000;
+    will-change: transform;
+  }
+
+  // holds the ribbon's width, so the type is never over bare page
+  .blob--slab {
+    top: -8%;
+    bottom: -8%;
+    left: -14%;
+    right: 62px;
+    border-radius: 0;
+  }
+
+  @each $i, $r, $t, $sz, $mx, $my, $ms, $ex, $ey, $es, $dur, $delay in $blobs {
+    .blob--#{$i} {
+      right: $r;
+      top: $t;
+      width: $sz;
+      height: $sz;
+      animation: blob-#{$i} $dur ease-in-out $delay infinite alternate;
+    }
+
+    // three stops rather than two, so the path curves instead of sliding
+    // back and forth along one line
+    @keyframes blob-#{$i} {
+      0%   { transform: translate3d(0, 0, 0) scale(1); }
+      50%  { transform: translate3d($mx, $my, 0) scale($ms); }
+      100% { transform: translate3d($ex, $ey, 0) scale($es); }
+    }
+  }
+
+  @each $i, $r, $t, $sz, $mx, $my, $ms, $ex, $ey, $es, $dur, $delay in $drops {
+    .blob--drop-#{$i} {
+      right: $r;
+      top: $t;
+      width: $sz;
+      height: $sz;
+      animation: drop-#{$i} $dur ease-in-out $delay infinite alternate;
+    }
+
+    @keyframes drop-#{$i} {
+      0%   { transform: translate3d(0, 0, 0) scale(1); }
+      50%  { transform: translate3d($mx, $my, 0) scale($ms); }
+      100% { transform: translate3d($ex, $ey, 0) scale($es); }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .blob {
+      animation: none !important;
+    }
+  }
+
+  /*
+     Ribbon type, over the fluid
+     ========================================================================== */
+
+  .sidebar .author__name {
+    color: #f2effc;
+  }
+
+  .sidebar .author__bio {
+    color: rgba(255, 255, 255, 0.7);
+    opacity: 1;
+  }
+
+  .sidebar .author__urls li {
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+  }
+
+  .sidebar .author__urls li.author__desktop {
+    color: rgba(255, 255, 255, 0.62);
+    opacity: 1;
+  }
+
+  .sidebar .author__urls a {
+    color: rgba(255, 255, 255, 0.84);
+
+    &:hover {
+      color: #fff;
+    }
+  }
+
+  .sidebar .author__name,
+  .sidebar .author__bio,
+  .sidebar .author__urls {
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
   }
 }
