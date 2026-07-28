@@ -343,8 +343,6 @@
   opacity: 1;
 }
 
-
-
 /*
    Ferrofluid
    ========================================================================== */
@@ -354,49 +352,62 @@
 // every soft overlap becomes a hard join -- blobs neck together and pinch
 // apart like a liquid rather than sliding over one another.
 //
-// Each blob runs THREE animations at once on three different clocks: vertical
-// drift (the `translate` property), horizontal drift (`transform`), and swell
-// (`scale`). Those are separate CSS properties, so they compose instead of
-// overwriting each other. A single back-and-forth animation makes a blob
-// retrace one fixed path, which is what reads as "the same few spots moving";
-// three out-of-step cycles trace a wandering figure that only returns to its
-// exact starting state when all three realign.
+// Every blob shares the same ight, so at rest their outer edges line up and
+// the ribbon's right margin is straight. All of the undulation comes from the
+// animation; nothing is baked into the layout. (An earlier version staggered
+// ight across a 58px spread, which put permanent notches in the edge before
+// anything had moved -- that is what read as craters on arrival.)
 //
-// Every duration divides $ooze-cycle. That makes the whole field exactly
-// periodic over that span, which is what lets the phase be pinned to the wall
-// clock: see --ooze-phase in _includes/head/custom.html. Because every page
-// reads the same clock the motion continues across navigation instead of
-// restarting, and because the clock is never the same twice the field is in a
-// different state on every visit.
+// Each blob runs THREE animations on three different clocks: vertical drift
+// (the 	ranslate property), horizontal drift (	ransform) and swell
+// (scale). Those are separate CSS properties, so they compose instead of
+// overwriting one another, and the blob wanders instead of retracing one path.
+//
+// Every duration divides $ooze-cycle, which makes the whole field exactly
+// periodic over that span -- that is what lets the phase be pinned to the wall
+// clock (see --ooze-phase in _includes/head/custom.html). Every page reads the
+// same clock, so the motion carries across navigation instead of restarting,
+// and the clock is never the same twice, so each visit begins somewhere new.
 $ooze-cycle: 1800s;
 
 // (i, right, top, size, ampY, ampX, scaleMin, scaleMax, durY, durX, durScale, phase)
 $blobs:
-  ( 1, -28px, -8%, 176px, 78px, 34px, 0.86, 1.18, 45s, 30s,  75s,  3),
-  ( 2,  16px, -2%, 118px, 62px, 42px, 0.90, 1.22, 40s, 36s,  60s, 11),
-  ( 3,  -8px,  4%, 152px, 88px, 26px, 0.84, 1.14, 50s, 24s,  90s, 19),
-  ( 4,  30px, 10%,  96px, 54px, 46px, 0.92, 1.26, 36s, 45s,  50s,  7),
-  ( 5, -20px, 16%, 184px, 96px, 30px, 0.82, 1.16, 60s, 25s,  75s, 27),
-  ( 6,  22px, 22%, 110px, 70px, 38px, 0.88, 1.24, 40s, 30s, 100s, 15),
-  ( 7, -12px, 28%, 164px, 84px, 28px, 0.86, 1.12, 72s, 36s,  60s, 33),
-  ( 8,  10px, 34%, 128px, 58px, 44px, 0.90, 1.20, 36s, 50s,  90s,  5),
-  ( 9, -26px, 40%, 192px, 92px, 32px, 0.84, 1.18, 50s, 24s,  75s, 23),
-  (10,  26px, 46%, 104px, 66px, 48px, 0.92, 1.26, 45s, 30s,  50s, 13),
-  (11,  -6px, 52%, 158px, 80px, 24px, 0.86, 1.14, 60s, 45s, 100s, 29),
-  (12,  18px, 58%, 122px, 56px, 40px, 0.88, 1.22, 40s, 25s,  60s,  9),
-  (13, -22px, 64%, 180px, 90px, 34px, 0.82, 1.16, 72s, 36s,  90s, 35),
-  (14,  12px, 70%, 114px, 64px, 46px, 0.90, 1.24, 36s, 30s,  75s, 17),
-  (15, -14px, 76%, 168px, 86px, 26px, 0.84, 1.12, 50s, 45s,  50s, 25),
-  (16,  28px, 82%, 100px, 52px, 42px, 0.92, 1.20, 45s, 24s, 100s, 31),
-  (17, -18px, 88%, 186px, 94px, 30px, 0.86, 1.18, 60s, 36s,  60s, 21),
-  (18,  14px, 94%, 126px, 60px, 38px, 0.88, 1.26, 40s, 25s,  90s, 37);
+  ( 1, 34px,     -6%, 133px, 47px, 13px, 0.91, 1.1, 225s, 150s, 600s, 13),
+  ( 2, 34px,   -2.3%, 162px, 35px, 18px, 0.94, 1.14, 180s, 180s, 450s, 26),
+  ( 3, 34px,    1.4%, 106px, 52px, 10px, 0.9, 1.07, 150s, 200s, 360s, 39),
+  ( 4, 34px,    5.1%, 135px, 40px, 15px, 0.93, 1.11, 120s, 225s, 300s, 52),
+  ( 5, 34px,    8.8%, 164px, 57px, 20px, 0.89, 1.15, 100s, 300s, 225s, 65),
+  ( 6, 34px,   12.5%, 108px, 45px, 12px, 0.92, 1.08, 90s, 120s, 200s, 78),
+  ( 7, 34px,   16.2%, 137px, 33px, 17px, 0.88, 1.12, 225s, 150s, 600s, 91),
+  ( 8, 34px,   19.9%, 166px, 50px, 9px, 0.91, 1.16, 180s, 180s, 450s, 7),
+  ( 9, 34px,   23.6%, 110px, 38px, 14px, 0.94, 1.09, 150s, 200s, 360s, 20),
+  (10, 34px,   27.3%, 139px, 55px, 19px, 0.9, 1.13, 120s, 225s, 300s, 33),
+  (11, 34px,     31%, 168px, 43px, 11px, 0.93, 1.06, 100s, 300s, 225s, 46),
+  (12, 34px,   34.7%, 112px, 31px, 16px, 0.89, 1.1, 90s, 120s, 200s, 59),
+  (13, 34px,   38.4%, 141px, 48px, 8px, 0.92, 1.14, 225s, 150s, 600s, 72),
+  (14, 34px,   42.1%, 170px, 36px, 13px, 0.88, 1.07, 180s, 180s, 450s, 85),
+  (15, 34px,   45.8%, 114px, 53px, 18px, 0.91, 1.11, 150s, 200s, 360s, 1),
+  (16, 34px,   49.5%, 143px, 41px, 10px, 0.94, 1.15, 120s, 225s, 300s, 14),
+  (17, 34px,   53.2%, 172px, 58px, 15px, 0.9, 1.08, 100s, 300s, 225s, 27),
+  (18, 34px,   56.9%, 116px, 46px, 20px, 0.93, 1.12, 90s, 120s, 200s, 40),
+  (19, 34px,   60.6%, 145px, 34px, 12px, 0.89, 1.16, 225s, 150s, 600s, 53),
+  (20, 34px,   64.3%, 174px, 51px, 17px, 0.92, 1.09, 180s, 180s, 450s, 66),
+  (21, 34px,     68%, 118px, 39px, 9px, 0.88, 1.13, 150s, 200s, 360s, 79),
+  (22, 34px,   71.7%, 147px, 56px, 14px, 0.91, 1.06, 120s, 225s, 300s, 92),
+  (23, 34px,   75.4%, 176px, 44px, 19px, 0.94, 1.1, 100s, 300s, 225s, 8),
+  (24, 34px,   79.1%, 120px, 32px, 11px, 0.9, 1.14, 90s, 120s, 200s, 21),
+  (25, 34px,   82.8%, 149px, 49px, 16px, 0.93, 1.07, 225s, 150s, 600s, 34),
+  (26, 34px,   86.5%, 178px, 37px, 8px, 0.89, 1.11, 180s, 180s, 450s, 47),
+  (27, 34px,   90.2%, 122px, 54px, 13px, 0.92, 1.15, 150s, 200s, 360s, 60),
+  (28, 34px,   93.9%, 151px, 42px, 18px, 0.88, 1.08, 120s, 225s, 300s, 73);
 
 // stray droplets: longer throws and harder swells, so they detach from the
 // mass and are drawn back into it
 $drops:
-  (drop-a, -46px, 20%, 44px, 110px, 40px, 0.70, 1.35, 36s, 25s, 50s,  4),
-  (drop-b, -52px, 58%, 36px, 120px, 34px, 0.65, 1.40, 45s, 30s, 60s, 12),
-  (drop-c, -40px, 82%, 40px, 100px, 44px, 0.72, 1.32, 40s, 24s, 75s,  8);
+(drop-a,  8px, 16%, 44px,  96px, 16px, 0.72, 1.34, 150s, 200s, 300s, 11),
+  (drop-b, 14px, 42%, 36px, 112px, 12px, 0.68, 1.38, 180s, 225s, 360s, 29),
+  (drop-c,  6px, 68%, 40px, 104px, 18px, 0.70, 1.32, 120s, 180s, 450s, 47),
+  (drop-d, 12px, 88%, 34px,  90px, 14px, 0.74, 1.36, 225s, 150s, 225s, 67);
 
 // the three axes, driven off each blob's own custom properties
 @keyframes ooze-y {
@@ -426,26 +437,24 @@ $drops:
 }
 
 @media screen and (min-width: $sidebar-screen-min-width) {
-  // above the masthead's 20 so the fluid runs to the very top of the screen.
-  // The nav's own links are centred, so none of them is covered
   .sidebar {
+    // above the masthead's 20 so the ribbon's type clears it, and above the
+    // fluid's 24. overflow-y stays auto so a short screen can scroll the
+    // ribbon -- the fluid lives outside .sidebar precisely so this is safe
     z-index: 25;
-    // the fluid extends past the ribbon on both sides; any overflow rule
-    // would clip it back to the column
-    overflow: visible;
+    overflow-y: auto;
   }
 
+  // fixed to the viewport, spanning from the screen edge out to the ribbon's
+  // right edge plus the 30px margin the blobs undulate within
   .fluid {
     display: block;
-    position: absolute;
+    position: fixed;
     top: 0;
     bottom: 0;
-    // off the left edge of the viewport (the offset undoes the ribbon's own
-    // left position) and 30px past the ribbon on the right, which is the
-    // margin the blobs undulate within
-    left: calc(-25vw + 202px);
-    right: -30px;
-    z-index: -1;
+    left: 0;
+    width: calc(25% - 21px);
+    z-index: 24;
     overflow: hidden;
   }
 
@@ -542,5 +551,11 @@ $drops:
   .sidebar .author__bio,
   .sidebar .author__urls {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+  }
+}
+
+@media screen and (min-width: 1280px) {
+  .fluid {
+    width: calc(25% - 45px);
   }
 }

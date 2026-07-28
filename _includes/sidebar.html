@@ -1,12 +1,13 @@
 {% include base_path %}
 
 {% if page.author_profile or layout.author_profile or page.sidebar %}
-  <div class="sidebar sticky">
   {% if page.author_profile or layout.author_profile %}
-    {% include author-profile.html %}
-    <!-- ferrofluid: black metaballs merged by a gooey threshold filter, so the
-         mass necks, splits and reforms as the blobs drift. The slab keeps the
-         ribbon's own width solidly covered; the blobs undulate its right edge -->
+    <!-- Ferrofluid: black metaballs merged by a gooey threshold filter, so the
+         mass necks, splits and reforms as the blobs drift. It sits OUTSIDE
+         .sidebar deliberately -- the ribbon needs overflow-y: auto so a short
+         screen can scroll it, and an overflow rule on the ribbon would clip
+         the fluid back to the column. As a sibling it is fixed to the viewport
+         and clips nothing. -->
     <div class="fluid" aria-hidden="true">
       <svg class="fluid__defs" width="0" height="0" focusable="false">
         <defs>
@@ -38,12 +39,25 @@
         <span class="blob blob--16"></span>
         <span class="blob blob--17"></span>
         <span class="blob blob--18"></span>
+        <span class="blob blob--19"></span>
+        <span class="blob blob--20"></span>
+        <span class="blob blob--21"></span>
+        <span class="blob blob--22"></span>
+        <span class="blob blob--23"></span>
+        <span class="blob blob--24"></span>
+        <span class="blob blob--25"></span>
+        <span class="blob blob--26"></span>
+        <span class="blob blob--27"></span>
+        <span class="blob blob--28"></span>
         <span class="blob blob--drop-a"></span>
         <span class="blob blob--drop-b"></span>
         <span class="blob blob--drop-c"></span>
+        <span class="blob blob--drop-d"></span>
       </div>
     </div>
   {% endif %}
+  <div class="sidebar sticky">
+  {% if page.author_profile or layout.author_profile %}{% include author-profile.html %}{% endif %}
   {% if page.sidebar %}
     {% for s in page.sidebar %}
       {% if s.image %}
