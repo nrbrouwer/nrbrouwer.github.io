@@ -37,29 +37,33 @@
           ];
           var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
 
-          /* Viscous pool. The cursor displaces the surface only by MOVING:
-             the dent's target is proportional to smoothed horizontal
-             velocity, so a parked cursor does nothing however close it sits.
-             Sweeping rightward (into the edge) presses the line left;
-             sweeping leftward draws a smaller bulge after it. Heavy easing on
-             both the surface (slow approach, slow relax) and the velocity
-             (friction) is what makes it read as viscosity: the pool answers
-             late and settles late. */
-          var mx = -1e4, my = -1e4, pmx = 0, havePrev = false;
+          /* Viscous pool. Velocity is measured in px per MILLISECOND from
+             event timestamps, so the response is identical whatever rate the
+             browser fires mousemove at. Sweeping rightward presses the line
+             left; leftward draws a smaller bulge. The dent is always applied,
+             however small (gating it at a threshold made it pop in and out),
+             and it eases in faster than it eases out: the pool yields, then
+             slowly recovers. */
+          var mx = -1e4, my = -1e4, pmx = 0, pmt = 0, havePrev = false, haveY = false;
           var vel = 0, dip = 0, dipY = 0;
-          var REACH = 130, MAXPRESS = 20, MAXPULL = 11;
-          var GAIN = 0.5, FRICTION = 0.92, EASE = 0.06, SIGMA = 80;
+          var REACH = 160, MAXPRESS = 26, MAXPULL = 14, SIGMA = 90;
+          var GAIN = 26, FRICTION = 0.90, EASE_IN = 0.10, EASE_OUT = 0.04;
           window.addEventListener('mousemove', function (e) {
+            var t = e.timeStamp;
             if (havePrev) {
-              var dx = e.clientX - pmx;
-              if (dx > 60) { dx = 60; } else if (dx < -60) { dx = -60; }
-              vel = vel * 0.7 + dx * 0.3;
+              var dt = t - pmt;
+              if (dt >= 1 && dt < 120) {
+                var vpm = (e.clientX - pmx) / dt;
+                if (vpm > 2.5) { vpm = 2.5; } else if (vpm < -2.5) { vpm = -2.5; }
+                vel = vel * 0.6 + vpm * 0.4;
+              }
             }
-            pmx = e.clientX; havePrev = true;
+            pmx = e.clientX; pmt = t; havePrev = true;
             mx = e.clientX; my = e.clientY;
+            if (!haveY) { dipY = my; haveY = true; }
           }, { passive: true });
           document.documentElement.addEventListener('mouseleave', function () {
-            mx = -1e4; my = -1e4;
+            mx = -1e4;
           });
 
           function draw() {
@@ -73,8 +77,9 @@
               var target = -vel * GAIN * prox;
               if (target < -MAXPRESS) { target = -MAXPRESS; }
               if (target > MAXPULL)   { target = MAXPULL; }
-              dip += (target - dip) * EASE;
-              dipY += (my - dipY) * 0.08;
+              var ease = (Math.abs(target) > Math.abs(dip)) ? EASE_IN : EASE_OUT;
+              dip += (target - dip) * ease;
+              if (haveY && my > -9000) { dipY += (my - dipY) * 0.10; }
               var t = Date.now(), d = 'M0,0', y, i, x, v, g;
               for (y = 0; y <= h + STEP; y += STEP) {
                 x = restX;
@@ -82,10 +87,8 @@
                   v = waves[i];
                   x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
                 }
-                if (dip > 0.4 || dip < -0.4) {
-                  g = (y - dipY) / SIGMA;
-                  x += dip * Math.exp(-0.5 * g * g);
-                }
+                g = (y - dipY) / SIGMA;
+                x += dip * Math.exp(-0.5 * g * g);
                 d += ' L' + x.toFixed(1) + ',' + y;
               }
               edge.setAttribute('d', d + ' L0,' + (h + STEP) + ' Z');
