@@ -37,14 +37,25 @@
           ];
           var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
 
-          /* The cursor presses a dent into the edge: a gaussian dip centred
-             on the pointer's y, whose depth grows as the pointer nears the
-             edge. Strength and centre are eased each frame, so the dent
-             swells, follows and relaxes like the surface has tension rather
-             than snapping to the cursor. */
-          var mx = -1e4, my = -1e4, dipS = 0, dipY = 0;
-          var REACH = 150, DEPTH = 34, SIGMA = 65;
+          /* Viscous pool. The cursor displaces the surface only by MOVING:
+             the dent's target is proportional to smoothed horizontal
+             velocity, so a parked cursor does nothing however close it sits.
+             Sweeping rightward (into the edge) presses the line left;
+             sweeping leftward draws a smaller bulge after it. Heavy easing on
+             both the surface (slow approach, slow relax) and the velocity
+             (friction) is what makes it read as viscosity: the pool answers
+             late and settles late. */
+          var mx = -1e4, my = -1e4, pmx = 0, havePrev = false;
+          var vel = 0, dip = 0, dipY = 0;
+          var REACH = 130, MAXPRESS = 20, MAXPULL = 11;
+          var GAIN = 0.5, FRICTION = 0.92, EASE = 0.06, SIGMA = 80;
           window.addEventListener('mousemove', function (e) {
+            if (havePrev) {
+              var dx = e.clientX - pmx;
+              if (dx > 60) { dx = 60; } else if (dx < -60) { dx = -60; }
+              vel = vel * 0.7 + dx * 0.3;
+            }
+            pmx = e.clientX; havePrev = true;
             mx = e.clientX; my = e.clientY;
           }, { passive: true });
           document.documentElement.addEventListener('mouseleave', function () {
@@ -55,11 +66,15 @@
             var w = box.clientWidth, h = box.clientHeight;
             if (w > 0 && h > 0) {
               var restX = w - INSET;
+              vel = vel * FRICTION;
               var prox = 1 - Math.abs(mx - restX) / REACH;
               if (prox < 0) { prox = 0; }
-              var target = DEPTH * prox * prox * (3 - 2 * prox);
-              dipS += (target - dipS) * 0.10;
-              dipY += (my - dipY) * (dipS > 0.5 ? 0.18 : 1);
+              prox = prox * prox * (3 - 2 * prox);
+              var target = -vel * GAIN * prox;
+              if (target < -MAXPRESS) { target = -MAXPRESS; }
+              if (target > MAXPULL)   { target = MAXPULL; }
+              dip += (target - dip) * EASE;
+              dipY += (my - dipY) * 0.08;
               var t = Date.now(), d = 'M0,0', y, i, x, v, g;
               for (y = 0; y <= h + STEP; y += STEP) {
                 x = restX;
@@ -67,9 +82,9 @@
                   v = waves[i];
                   x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
                 }
-                if (dipS > 0.5) {
+                if (dip > 0.4 || dip < -0.4) {
                   g = (y - dipY) / SIGMA;
-                  x -= dipS * Math.exp(-0.5 * g * g);
+                  x += dip * Math.exp(-0.5 * g * g);
                 }
                 d += ' L' + x.toFixed(1) + ',' + y;
               }
