@@ -29,27 +29,35 @@
           var still = window.matchMedia &&
                       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           var waves = [
-            { amp: 6.5, len: 1320, per: 190000, dir:  1 },
-            { amp: 4.2, len:  600, per: 120000, dir: -1 },
-            { amp: 2.8, len:  295, per:  80000, dir:  1 },
-            { amp: 1.9, len:  182, per:  60000, dir: -1 },
-            { amp: 1.2, len:  113, per:  45000, dir:  1 }
+            { amp: 7.8, len: 1320, per: 190000, dir:  1 },
+            { amp: 5.0, len:  600, per: 120000, dir: -1 },
+            { amp: 3.4, len:  295, per:  80000, dir:  1 },
+            { amp: 2.3, len:  182, per:  60000, dir: -1 },
+            { amp: 1.4, len:  113, per:  45000, dir:  1 }
           ];
           var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
 
-          /* The interactive layer is a 1D surface simulation, not a shape
-             chasing a target. Every sample point along the edge carries its
-             own displacement and momentum; each frame it feels a weak spring
-             back to rest, tension coupling to its neighbours, and heavy
-             damping. The cursor never sets a position -- it only injects
-             momentum (proportional to its horizontal speed, in px/ms from
-             event timestamps) into the points near it. The disturbance then
-             spreads, overshoots slightly, and dies away on its own, which is
-             what reads as thick liquid rather than a UI effect. */
-          var K = 0.005, TENSION = 0.10, DAMP = 0.93;
-          var REACH = 170, INJECT = 2.4, SGM = 55;
+          /* Surface simulation: each sample point has displacement and
+             momentum; forces are a weak spring to rest, tension to the
+             neighbours and heavy damping. The cursor injects momentum IN THE
+             DIRECTION OF ITS TRAVEL, so it drags the surface with it like a
+             finger through tar. Constants are set gooey: high damping and low
+             tension, so a disturbance barely rings and spreads only a short
+             way before dying. */
+          var K = 0.003, TENSION = 0.06, DAMP = 0.88;
+          var REACH = 170, INJECT = 3.2, SGM = 55;
           var MAXPRESS = 30, MAXPULL = 12;
           var pos = [], mom = [];
+
+          /* On the first page of a visit the edge begins as a straight line
+             and the ambient waves grow in over eight seconds -- the pool
+             wakes up. Navigation within the visit skips the ramp so the
+             surface stays continuous from page to page. */
+          var born = Date.now(), wake = !still;
+          try {
+            if (wake && sessionStorage.getItem('nb-oozed')) { wake = false; }
+            if (wake) { sessionStorage.setItem('nb-oozed', '1'); }
+          } catch (err) { wake = false; }
 
           var mx = -1e4, my = -1e4, pmx = 0, pmt = 0, havePrev = false;
           var vel = 0;
@@ -84,7 +92,7 @@
               if (prox < 0) { prox = 0; }
               prox = prox * prox * (3 - 2 * prox);
               if (prox > 0 && (vel > 0.02 || vel < -0.02)) {
-                var kick = -vel * INJECT * prox, g;
+                var kick = vel * INJECT * prox, g;
                 for (i = 0; i < n; i++) {
                   g = (i * STEP - my) / SGM;
                   mom[i] += kick * Math.exp(-0.5 * g * g);
@@ -106,11 +114,17 @@
               }
 
               var t = Date.now(), d = 'M0,0', x, v;
+              var env = 1;
+              if (wake) {
+                env = (t - born) / 8000;
+                if (env >= 1) { env = 1; wake = false; }
+                else { env = env * env * (3 - 2 * env); }
+              }
               for (i = 0; i < n; i++) {
                 y = i * STEP;
                 x = restX;
                 for (v = 0; v < waves.length; v++) {
-                  x += waves[v].amp *
+                  x += env * waves[v].amp *
                        Math.sin(TAU * (y / waves[v].len + waves[v].dir * t / waves[v].per));
                 }
                 x += pos[i];

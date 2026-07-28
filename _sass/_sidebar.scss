@@ -376,17 +376,19 @@
   // plus the margin the line moves within. pointer-events: none matters: this
   // covers the whole left region, and without it the overlay swallows wheel
   // events aimed at the ribbon underneath it.
-  // Sized so the line RESTS 16px right of the ribbon's edge instead of on it:
-  // width = ribbon right edge + 16px of clear water + the 34px inset the line
-  // keeps from this box's own right side. The waves (±16.6px) and the mouse
-  // bulge (+12px) stay short of the content column at every width.
+  // Sized so the line RESTS 12px right of the ribbon's edge instead of on it:
+  // width = ribbon right edge + 12px of clear water + the 34px inset the line
+  // keeps from this box's own right side. The waves (±19.9px) and the mouse
+  // pull (+14px) stay short of the content column at every width; the
+  // tightest case is exactly 1280px, with ~3px to spare at the rare moment
+  // every wave crest and a full pull coincide.
   .fluid {
     display: block;
     position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    width: calc(25% - 15px);
+    width: calc(25% - 19px);
     z-index: 24;
     overflow: hidden;
     pointer-events: none;
@@ -404,7 +406,7 @@
       top: 0;
       bottom: 0;
       left: 0;
-      right: 50px;
+      right: 46px;
       background: #000;
     }
 
@@ -462,7 +464,7 @@
 
 @media screen and (min-width: 1280px) {
   .fluid {
-    width: calc(25% - 39px);
+    width: calc(25% - 43px);
   }
 }
 
