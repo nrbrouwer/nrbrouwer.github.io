@@ -13,40 +13,50 @@
     </div>
     <script>
       (function () {
-        var edge = document.querySelector('.fluid__edge');
-        if (!edge) { return; }
-        var box  = edge.parentNode.parentNode;
-        var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        // Five components with unrelated wavelengths and periods, half of them
-        // travelling the other way. Nothing shares a common multiple, so the
-        // profile never repeats. Reading the clock rather than counting frames
-        // is what keeps it continuous from page to page -- and never the same
-        // on two visits.
-        var waves = [
-          { amp: 11.0, len: 1320, per: 298000, dir:  1 },
-          { amp:  7.0, len:  600, per: 185000, dir: -1 },
-          { amp:  4.5, len:  295, per: 121000, dir:  1 },
-          { amp:  3.0, len:  182, per:  88000, dir: -1 },
-          { amp:  1.8, len:  113, per:  66000, dir:  1 }
-        ];
-        var TAU = Math.PI * 2, INSET = 34, STEP = 8;
-        function draw() {
-          var w = box.clientWidth, h = box.clientHeight;
-          if (w && h) {
-            var t = Date.now(), d = 'M0,0', y, i, x, v;
-            for (y = 0; y <= h + STEP; y += STEP) {
-              x = w - INSET;
-              for (i = 0; i < waves.length; i++) {
-                v = waves[i];
-                x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
+        function start() {
+          var edge = document.querySelector('.fluid__edge');
+          if (!edge) { return; }
+          var box = edge.parentNode.parentNode;
+          var still = window.matchMedia &&
+                      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          // Five components with unrelated wavelengths and periods, half of
+          // them travelling the other way, so the profile never repeats.
+          // Reading the clock rather than counting frames is what keeps it
+          // continuous from page to page and never the same on two visits.
+          var waves = [
+            { amp: 11.0, len: 1320, per: 298000, dir:  1 },
+            { amp:  7.0, len:  600, per: 185000, dir: -1 },
+            { amp:  4.5, len:  295, per: 121000, dir:  1 },
+            { amp:  3.0, len:  182, per:  88000, dir: -1 },
+            { amp:  1.8, len:  113, per:  66000, dir:  1 }
+          ];
+          var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
+          function draw() {
+            var w = box.clientWidth, h = box.clientHeight;
+            if (w > 0 && h > 0) {
+              var t = Date.now(), d = 'M0,0', y, i, x, v;
+              for (y = 0; y <= h + STEP; y += STEP) {
+                x = w - INSET;
+                for (i = 0; i < waves.length; i++) {
+                  v = waves[i];
+                  x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
+                }
+                d += ' L' + x.toFixed(1) + ',' + y;
               }
-              d += ' L' + x.toFixed(1) + ',' + y;
+              edge.setAttribute('d', d + ' L0,' + (h + STEP) + ' Z');
+              drawn = true;
             }
-            edge.setAttribute('d', d + ' L0,' + (h + STEP) + ' Z');
+            // keep going while animating; if motion is off, keep retrying only
+            // until the box has been measured once
+            if (!still || !drawn) { requestAnimationFrame(draw); }
           }
-          if (!still) { requestAnimationFrame(draw); }
+          draw();
         }
-        draw();
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', start);
+        } else {
+          start();
+        }
       })();
     </script>
   {% endif %}
