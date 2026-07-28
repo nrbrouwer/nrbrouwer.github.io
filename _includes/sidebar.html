@@ -11,6 +11,15 @@
         <path class="fluid__edge" d=""></path>
       </svg>
     </div>
+    <!-- The wave profile is a sum of five sine components with unrelated
+         wavelengths and periods, half travelling the other way, so the edge
+         never repeats. It reads the wall clock rather than counting frames,
+         which keeps it continuous across page loads and different on every
+         visit. Once the first frame is drawn, the fluid--live class retires
+         the static CSS fallback underneath.
+         NOTE: no // comments inside the script, ever. jekyll-compress-html
+         serves the whole page as one line, so a single line comment would
+         comment out the rest of the script. Block comments only. -->
     <script>
       (function () {
         function start() {
@@ -19,10 +28,6 @@
           var box = edge.parentNode.parentNode;
           var still = window.matchMedia &&
                       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-          // Five components with unrelated wavelengths and periods, half of
-          // them travelling the other way, so the profile never repeats.
-          // Reading the clock rather than counting frames is what keeps it
-          // continuous from page to page and never the same on two visits.
           var waves = [
             { amp: 11.0, len: 1320, per: 298000, dir:  1 },
             { amp:  7.0, len:  600, per: 185000, dir: -1 },
@@ -44,10 +49,11 @@
                 d += ' L' + x.toFixed(1) + ',' + y;
               }
               edge.setAttribute('d', d + ' L0,' + (h + STEP) + ' Z');
-              drawn = true;
+              if (!drawn) {
+                drawn = true;
+                box.classList.add('fluid--live');
+              }
             }
-            // keep going while animating; if motion is off, keep retrying only
-            // until the box has been measured once
             if (!still || !drawn) { requestAnimationFrame(draw); }
           }
           draw();

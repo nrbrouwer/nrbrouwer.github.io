@@ -387,19 +387,24 @@
     overflow: hidden;
     pointer-events: none;
 
-    // fail-safe: everything up to the wave band is solid black in pure CSS,
-    // so the ribbon is black even if the script never runs -- without it, an
-    // empty path means no fluid at all and white type on a bare page. 61px =
-    // the 34px inset plus the waves' 27px total amplitude; the drawn path
-    // overlaps it seamlessly
+    // Fail-safe: the whole ribbon width is solid black in pure CSS, so the
+    // type is never on a bare page even if the script cannot run -- 30px is
+    // the undulation margin, so this reaches exactly the ribbon's right edge.
+    // The script retires it (see .fluid--live below) after its first frame;
+    // it cannot stay up during animation or it would mask the wave troughs,
+    // which swing up to 27px further left than this edge.
     &::before {
       content: "";
       position: absolute;
       top: 0;
       bottom: 0;
       left: 0;
-      right: 61px;
+      right: 30px;
       background: #000;
+    }
+
+    &.fluid--live::before {
+      display: none;
     }
   }
 
