@@ -37,61 +37,86 @@
           ];
           var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
 
-          /* Viscous pool. Velocity is measured in px per MILLISECOND from
-             event timestamps, so the response is identical whatever rate the
-             browser fires mousemove at. Sweeping rightward presses the line
-             left; leftward draws a smaller bulge. The dent is always applied,
-             however small (gating it at a threshold made it pop in and out),
-             and it eases in faster than it eases out: the pool yields, then
-             slowly recovers. */
-          var mx = -1e4, my = -1e4, pmx = 0, pmt = 0, havePrev = false, haveY = false;
-          var vel = 0, dip = 0, dipY = 0;
-          var REACH = 160, MAXPRESS = 26, MAXPULL = 14, SIGMA = 90;
-          var GAIN = 26, FRICTION = 0.90, EASE_IN = 0.10, EASE_OUT = 0.04;
+          /* The interactive layer is a 1D surface simulation, not a shape
+             chasing a target. Every sample point along the edge carries its
+             own displacement and momentum; each frame it feels a weak spring
+             back to rest, tension coupling to its neighbours, and heavy
+             damping. The cursor never sets a position -- it only injects
+             momentum (proportional to its horizontal speed, in px/ms from
+             event timestamps) into the points near it. The disturbance then
+             spreads, overshoots slightly, and dies away on its own, which is
+             what reads as thick liquid rather than a UI effect. */
+          var K = 0.005, TENSION = 0.10, DAMP = 0.93;
+          var REACH = 170, INJECT = 2.4, SGM = 55;
+          var MAXPRESS = 30, MAXPULL = 12;
+          var pos = [], mom = [];
+
+          var mx = -1e4, my = -1e4, pmx = 0, pmt = 0, havePrev = false;
+          var vel = 0;
           window.addEventListener('mousemove', function (e) {
             var t = e.timeStamp;
             if (havePrev) {
               var dt = t - pmt;
               if (dt >= 1 && dt < 120) {
                 var vpm = (e.clientX - pmx) / dt;
-                if (vpm > 2.5) { vpm = 2.5; } else if (vpm < -2.5) { vpm = -2.5; }
-                vel = vel * 0.6 + vpm * 0.4;
+                if (vpm > 3) { vpm = 3; } else if (vpm < -3) { vpm = -3; }
+                vel = vel * 0.5 + vpm * 0.5;
               }
             }
             pmx = e.clientX; pmt = t; havePrev = true;
             mx = e.clientX; my = e.clientY;
-            if (!haveY) { dipY = my; haveY = true; }
           }, { passive: true });
           document.documentElement.addEventListener('mouseleave', function () {
-            mx = -1e4;
+            mx = -1e4; vel = 0;
           });
 
           function draw() {
             var w = box.clientWidth, h = box.clientHeight;
             if (w > 0 && h > 0) {
+              var n = Math.floor(h / STEP) + 2, i, y;
+              if (pos.length !== n) {
+                pos = new Array(n); mom = new Array(n);
+                for (i = 0; i < n; i++) { pos[i] = 0; mom[i] = 0; }
+              }
               var restX = w - INSET;
-              vel = vel * FRICTION;
+
               var prox = 1 - Math.abs(mx - restX) / REACH;
               if (prox < 0) { prox = 0; }
               prox = prox * prox * (3 - 2 * prox);
-              var target = -vel * GAIN * prox;
-              if (target < -MAXPRESS) { target = -MAXPRESS; }
-              if (target > MAXPULL)   { target = MAXPULL; }
-              var ease = (Math.abs(target) > Math.abs(dip)) ? EASE_IN : EASE_OUT;
-              dip += (target - dip) * ease;
-              if (haveY && my > -9000) { dipY += (my - dipY) * 0.10; }
-              var t = Date.now(), d = 'M0,0', y, i, x, v, g;
-              for (y = 0; y <= h + STEP; y += STEP) {
-                x = restX;
-                for (i = 0; i < waves.length; i++) {
-                  v = waves[i];
-                  x += v.amp * Math.sin(TAU * (y / v.len + v.dir * t / v.per));
+              if (prox > 0 && (vel > 0.02 || vel < -0.02)) {
+                var kick = -vel * INJECT * prox, g;
+                for (i = 0; i < n; i++) {
+                  g = (i * STEP - my) / SGM;
+                  mom[i] += kick * Math.exp(-0.5 * g * g);
                 }
-                g = (y - dipY) / SIGMA;
-                x += dip * Math.exp(-0.5 * g * g);
+              }
+              vel = vel * 0.9;
+
+              var prev, next, acc;
+              for (i = 0; i < n; i++) {
+                prev = (i > 0) ? pos[i - 1] : pos[i];
+                next = (i < n - 1) ? pos[i + 1] : pos[i];
+                acc = TENSION * (prev + next - 2 * pos[i]) - K * pos[i];
+                mom[i] = (mom[i] + acc) * DAMP;
+              }
+              for (i = 0; i < n; i++) {
+                pos[i] += mom[i];
+                if (pos[i] < -MAXPRESS) { pos[i] = -MAXPRESS; mom[i] = 0; }
+                if (pos[i] >  MAXPULL)  { pos[i] =  MAXPULL;  mom[i] = 0; }
+              }
+
+              var t = Date.now(), d = 'M0,0', x, v;
+              for (i = 0; i < n; i++) {
+                y = i * STEP;
+                x = restX;
+                for (v = 0; v < waves.length; v++) {
+                  x += waves[v].amp *
+                       Math.sin(TAU * (y / waves[v].len + waves[v].dir * t / waves[v].per));
+                }
+                x += pos[i];
                 d += ' L' + x.toFixed(1) + ',' + y;
               }
-              edge.setAttribute('d', d + ' L0,' + (h + STEP) + ' Z');
+              edge.setAttribute('d', d + ' L0,' + ((n - 1) * STEP) + ' Z');
               if (!drawn) {
                 drawn = true;
                 box.classList.add('fluid--live');

@@ -54,19 +54,19 @@
   // rather than sitting hard against #main's left edge. #main is capped, so
   // the content column's left edge is (50vw - 264px) below 1280px and
   // (50vw - 362px) above it; half the leftover space centres the ribbon.
+  // 14px further left than centred, buying that space back as clear water
+  // between the portrait's right edge and the fluid's resting line
   @media screen and (min-width: $sidebar-screen-min-width) {
     width: 155px;
     max-width: 155px;
     margin-left: 0;
-    // the 3.5px allows for the scrollbar, which percentage widths exclude
-    // but the content column's own centring does not
-    left: calc(25% - 206px);
+    left: calc(25% - 220px);
   }
 
   @media screen and (min-width: 1280px) {
     width: 205px;
     max-width: 205px;
-    left: calc(25% - 280px);
+    left: calc(25% - 294px);
   }
 
   h2, h3, h4, h5, h6 {
@@ -376,30 +376,35 @@
   // plus the margin the line moves within. pointer-events: none matters: this
   // covers the whole left region, and without it the overlay swallows wheel
   // events aimed at the ribbon underneath it.
+  // Sized so the line RESTS 16px right of the ribbon's edge instead of on it:
+  // width = ribbon right edge + 16px of clear water + the 34px inset the line
+  // keeps from this box's own right side. The waves (±16.6px) and the mouse
+  // bulge (+12px) stay short of the content column at every width.
   .fluid {
     display: block;
     position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    width: calc(25% - 21px);
+    width: calc(25% - 15px);
     z-index: 24;
     overflow: hidden;
     pointer-events: none;
 
     // Fail-safe: the whole ribbon width is solid black in pure CSS, so the
-    // type is never on a bare page even if the script cannot run -- 30px is
-    // the undulation margin, so this reaches exactly the ribbon's right edge.
-    // The script retires it (see .fluid--live below) after its first frame;
-    // it cannot stay up during animation or it would mask the wave troughs,
-    // which swing up to 27px further left than this edge.
+    // type is never on a bare page even if the script cannot run. 50px is
+    // this box's right edge minus the ribbon's right edge (identical in both
+    // width bands), so the straight fallback edge lands exactly on the
+    // ribbon. The script retires it (see .fluid--live below) after its first
+    // frame; it cannot stay up during animation or it would mask the wave
+    // troughs, which swing left of this edge.
     &::before {
       content: "";
       position: absolute;
       top: 0;
       bottom: 0;
       left: 0;
-      right: 30px;
+      right: 50px;
       background: #000;
     }
 
@@ -457,7 +462,7 @@
 
 @media screen and (min-width: 1280px) {
   .fluid {
-    width: calc(25% - 45px);
+    width: calc(25% - 39px);
   }
 }
 
