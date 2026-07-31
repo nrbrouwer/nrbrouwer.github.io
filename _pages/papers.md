@@ -70,14 +70,14 @@ author_profile: true
 
 <div class="paper">
   <div class="paper__body">
-    <h3 class="paper__title">Tools To Persuade: Exploring Tribal Engagement and the Politics of Federal Support</h3>
+    <h3 class="paper__title">Persuasion and Learning: Exploring Tribal Engagement and the Politics of Federal Support</h3>
     <p class="paper__cite">with <strong>Tessa Provins</strong></p>
     <div class="paper__actions">
-      <a href="/files/pdf/Brouwer_and_Provins__Native_Government_Allocation.pdf" class="btn">Download</a>
+      <a href="/files/pdf/Brouwer_and_Provins_Native_Government_Allocation_2026.pdf" class="btn">Download</a>
       <details class="paper__disclosure">
         <summary>Abstract</summary>
         <div class="paper__panel">
-          <p>Private-sector firms and subnational governments frequently engage in lobbying, consultation, and strategic advocacy to secure favorable funding and regulatory outcomes but it remains unclear whether and how federally recognized tribal governments employ similar tactics to influence their financial relationship with the U.S. federal government. In this paper, we examine how and why tribes engage with federal institutions and whether that engagement affects funding outcomes. We develop a theoretical framework that explains variation in tribal engagement as a function of economic need, administrative capacity, and institutional expertise. We collect original data on Tribal Interior Budget Council (TIBC) participation and lobbying disclosures from 2013&ndash;2021 to assess the drivers of tribal engagement and their consequences for federal funding. Using Department of the Interior funding data that includes over 93,000 transactions to tribal governments, we find that tribes participating directly in federal advisory processes receive significantly more federal funding overall, while indirect engagement through lobbying is positively associated with targeted increases in self-determination funding. These results provide evidence of the importance of political engagement in shaping funding outcomes. This study contributes to the broader literature on Indigenous governance, lobbying, and intergovernmental resource allocation.</p>
+          <p>Subnational governments frequently lobby and consult with institutions that fund them, but it remains unclear how federally recognized tribal governments use these strategies to shape their relationship with the U.S. federal government. We distinguish two forms of tribal engagement: persuasion, aimed at changing what federal policy permits or provides, and learning, aimed at navigating policy as it stands. We develop a theoretical framework explaining variation in engagement as a function of tribal demand, wealth, and geography, and derive competing expectations for whether engagement increases the federal funding tribes subsequently receive. We test these expectations using original data on tribal lobbying disclosures and participation in the Tribal-Interior Budget Council (TIBC) from 2013 to 2021, paired with a newly constructed dataset of over 89,000 Department of the Interior transactions to tribal governments. Lobbying is well predicted by tribal enrollment, gaming investment, and proximity to professional representation; TIBC participation is not. Neither form of engagement shows a reliable return, consistent with an allocation structure anchored to historical baselines. These results provide evidence that the structure of funding, not the intensity of engagement, drives what tribes receive. This study contributes to the broader literature on Indigenous governance, lobbying, and intergovernmental resource allocation.</p>
         </div>
       </details>
     </div>
@@ -92,13 +92,13 @@ author_profile: true
 
 <div class="paper">
   <div class="paper__body">
-    <h3 class="paper__title">Beyond the Reservation Line: The Electoral Consequences of American Indian Migration</h3>
+    <h3 class="paper__title">Hidden in Plain Sight: A Guide to American Indian Communities, Geography, and Migration</h3>
     <p class="paper__cite">with <strong>Alex Zhao</strong></p>
     <div class="paper__actions">
       <details class="paper__disclosure">
         <summary>Abstract</summary>
         <div class="paper__panel">
-          <p>The urbanization of American Indians has been a trend in native communities for the past 75 years, yet it's effects are rarely studied quantitatively. This project descriptively analyzes this migration, showing trends in American Indian migration over the past Century. Then it looks into how these American Indian migrants impact the electoral outcomes of small urban areas they move to.</p>
+          <p>American Indian and Alaskan Native (AIAN) populations are largely misunderstood or unknown to many political scientists. This project aims to give scholars a guide to understanding the dimensions of AIAN communities across the United States, including settings from urban, reservation, and in-between. Leveraging Census data, it walks readers through the different dimensions of AIAN communities, creates a typology of AIAN communities, and analyzes contemporary demographic shifts related to reservation border towns.</p>
         </div>
       </details>
     </div>
