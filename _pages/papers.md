@@ -92,6 +92,21 @@ author_profile: true
 
 <div class="paper">
   <div class="paper__body">
+    <h3 class="paper__title">The Impacts of Fiscal Devolution on Local Indigenous Development in Mexico</h3>
+    <p class="paper__cite">with <strong>Tesalia Rizzo</strong> and <strong>Cesar B. Martinez-Alvarez</strong></p>
+    <div class="paper__actions">
+      <details class="paper__disclosure">
+        <summary>Abstract</summary>
+        <div class="paper__panel">
+          <p>Effective institutions for self-governance are often understood as the product of long-run historical development rather than something that can be deliberately constructed. We test this assumption by examining whether fiscal incentives can generate local organizational capacity in communities with no prior formal governance structures. We study a 2024 policy that devolved 10\% of Mexico's federal social policy budget directly to more than 18,500 Indigenous and Afro-Mexican communities. While communities with formally recognized indigenous authorities qualified automatically, we focus on a subset of roughly 2,500 communities with comparatively little pre-existing institutional infrastructure that became eligible if 40\% of residents self-identified as Indigenous or Afro-Mexican in the 2020 census. We exploit this threshold in a regression discontinuity design to estimate the program's effect on local organizational capacity, defined as communities' ability to plan, coordinate, and execute public spending on local development projects, proxied using administrative data and high-resolution remote sensing of changes in built infrastructure and nighttime luminosity. To unpack the political mechanisms linking fiscal incentives to organizational capacity, we complement these measures with in-depth qualitative interviews with local residents and leaders.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+<div class="paper">
+  <div class="paper__body">
     <h3 class="paper__title">Hidden in Plain Sight: A Guide to American Indian Communities, Geography, and Migration</h3>
     <p class="paper__cite">with <strong>Alex Zhao</strong></p>
     <div class="paper__actions">
