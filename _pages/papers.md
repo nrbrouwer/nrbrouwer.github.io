@@ -51,7 +51,7 @@ author_profile: true
 <div class="paper">
   <div class="paper__body">
     <h3 class="paper__title">Power Without Capacity? Local Self-Governance and Economic Development on American Indian Reservations</h3>
-    <p class="paper__cite"><strong>Job market paper</strong></p>
+    <p class="paper__cite"><strong>Job market paper</strong> &middot; <em>Under review</em></p>
     <div class="paper__actions">
       <a href="/files/pdf/power_without_capacity_8_June_26.pdf" class="btn">Download</a>
       <a href="/files/pdf/power_without_capacity_SI_8_June_26.pdf" class="btn">Supplementary info</a>
@@ -71,7 +71,7 @@ author_profile: true
 <div class="paper">
   <div class="paper__body">
     <h3 class="paper__title">Persuasion and Learning: Exploring Tribal Engagement and the Politics of Federal Support</h3>
-    <p class="paper__cite">with <strong>Tessa Provins</strong></p>
+    <p class="paper__cite">with <strong>Tessa Provins</strong> &middot; <em>Under review</em></p>
     <div class="paper__actions">
       <a href="/files/pdf/Brouwer_and_Provins_Native_Government_Allocation_2026.pdf" class="btn">Download</a>
       <details class="paper__disclosure">
