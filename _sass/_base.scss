@@ -2,68 +2,71 @@
    BASE ELEMENTS
    ========================================================================== */
 
-// Ambient background: pale hues sweeping diagonally across the viewport.
-// The gradient is oversized (400%) and its position drifts, so at any moment
-// the screen shows a soft diagonal blend that slowly travels across it.
-// background-attachment: fixed pins the gradient to the viewport, so the
-// fixed masthead (see _masthead.scss) paints the identical background and
-// stays seamless with the page. Reduced-motion users get the static gradient.
-$ambient-gradient: linear-gradient(135deg,
-  #f7cdd9,   // rose
-  #f9d8bb,   // peach
-  #f6e9ad,   // butter
-  #bfe8cb,   // mint
-  #bcdcf6,   // sky
-  #c8cdf7,   // periwinkle
-  #e4c8f0,   // lilac
-  #f7cdd9);  // back to rose
-
-@keyframes ambient-sweep {
-  0%   { background-position: 0% 0%; }
-  100% { background-position: 100% 100%; }
-}
+// Page tint: a single pale colour derived from the ferrofluid ribbon's rim
+// temperature (see _thermal.scss), so the page and the ribbon can never
+// disagree. It breathes through the ramp on the same 180s alternate clock as
+// the ribbon, phase-locked to wall-clock time by the snippet in
+// head/custom.html. A static sheen brightens the field slightly to the right
+// so it has some depth without a second moving colour.
+//
+// The animated colour lives on body::before, a viewport-fixed layer of its
+// own (will-change promotes it to the compositor), NOT on html: animating
+// the root background repaints the entire document every frame, and with
+// background-attachment: fixed it also defeats scroll compositing, which
+// stuttered badly. This way each frame repaints one flat rectangle and the
+// text above it is never touched. html keeps the static cold tint as the
+// no-animation fallback. The fixed masthead paints the same layer for itself
+// (see _masthead.scss). Reduced-motion users get the static cold state.
+$page-sheen: linear-gradient(90deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.3) 100%);
 
 html {
   /* sticky footer fix */
   position: relative;
   min-height: 100%;
-  background: $ambient-gradient;
-  background-size: 400% 400%;
-  background-attachment: fixed;
-  animation: ambient-sweep 180s linear infinite alternate;
-  // set from wall-clock time by the snippet in head/custom.html, so the
-  // sweep keeps its phase across page loads instead of restarting at rose
-  animation-delay: var(--ambient-phase, 0s);
+  background-color: page-tint($heat-min);
 }
 
-// Body-copy hyperlinks drift through dark complements of the ambient
-// palette on the same 180s alternate clock as the background sweep, so a
-// link's hue always sits roughly opposite the field behind it. Every stop
-// is dark enough to clear contrast on all of the pastel background hues.
-@keyframes ambient-link-drift {
-  0%    { color: #0e7a5f; }  // teal        (vs rose)
-  14.3% { color: #1f5fa8; }  // blue        (vs peach)
-  28.6% { color: #3b46b0; }  // indigo      (vs butter)
-  42.9% { color: #a8237f; }  // magenta     (vs mint)
-  57.1% { color: #b25a13; }  // burnt orange (vs sky)
-  71.4% { color: #8a6d00; }  // dark gold   (vs periwinkle)
-  85.7% { color: #3f7a1e; }  // green       (vs lilac)
-  100%  { color: #0e7a5f; }
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  // behind body's content, above html's background
+  z-index: -1;
+  background-color: page-tint($heat-min);
+  background-image: $page-sheen;
+  will-change: transform;
+  pointer-events: none;
+  @include thermal-clock(thermal-page);
 }
 
+// Body-copy hyperlinks are the dark complement of the page tint, on the same
+// clock, so a link's hue always sits opposite the field behind it and every
+// stop clears contrast on every tint the page passes through.
 .page__content a:not(.btn),
 .archive a:not(.btn) {
-  animation: ambient-link-drift 180s linear infinite alternate;
-  // same wall-clock phase as the background, so the complement-tracking
-  // holds across page loads too
-  animation-delay: var(--ambient-phase, 0s);
+  color: ink-tint($heat-min);
+  @include thermal-clock(thermal-ink);
 }
 
+// !important because most of these get their animation from partials
+// imported after this one (masthead, buttons, navigation, sidebar) at the
+// same specificity, which would otherwise win the cascade and run anyway.
+// The hover bloom is a transition; it simply snaps.
 @media (prefers-reduced-motion: reduce) {
-  html, .masthead,
+  body::before,
+  .masthead::before,
   .page__content a:not(.btn),
   .archive a:not(.btn) {
-    animation: none;
+    animation: none !important;
+  }
+
+  .btn::before,
+  .paper__disclosure > summary::before,
+  .greedy-nav a {
+    transition: none !important;
   }
 }
 

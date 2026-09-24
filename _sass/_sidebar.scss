@@ -55,17 +55,26 @@
   // the content column's left edge is (50vw - 264px) below 1280px and
   // (50vw - 362px) above it; half the leftover space centres the ribbon.
   // 14px further left than centred, buying that space back as clear water
-  // between the portrait's right edge and the fluid's resting line
+  // between the portrait's right edge and the fluid's resting line.
+  // Widths leave ~22px between the portrait's right edge and the line (see
+  // .fluid below for where the line sits). Below 1024px the content column
+  // starts only ~212px from the screen edge at the narrowest (925px, where
+  // the profile first becomes a column), so the column is narrowest there.
   @media screen and (min-width: $sidebar-screen-min-width) {
-    width: 155px;
-    max-width: 155px;
+    width: 160px;
+    max-width: 160px;
     margin-left: 0;
     left: calc(25% - 220px);
   }
 
+  @media screen and (min-width: 1024px) {
+    width: 185px;
+    max-width: 185px;
+  }
+
   @media screen and (min-width: 1280px) {
-    width: 205px;
-    max-width: 205px;
+    width: 225px;
+    max-width: 225px;
     left: calc(25% - 294px);
   }
 
@@ -136,14 +145,6 @@
     border-radius: 0;
   }
 
-  // rainbow hairline under the portrait, echoing the nav and buttons
-  &::after {
-    content: "";
-    display: block;
-    height: 3px;
-    background: $rainbow-gradient;
-    background-size: 200% 100%;
-  }
 }
 
 .author__content {
@@ -188,7 +189,7 @@
 
 .sidebar .author__desktop {
   display: none;
-  @media screen and (min-width: 1024px) {
+  @media screen and (min-width: $sidebar-screen-min-width) {
     display: block;
   }
 }
@@ -347,11 +348,16 @@
    Ferrofluid
    ========================================================================== */
 
-// Not blobs any more. The mass is one filled SVG path whose right-hand
-// boundary is a function of height and time -- a sum of five sine components
-// with unrelated wavelengths and periods, half of them travelling the other
-// way -- and everything to the left of that line is black. The path is
-// recomputed each frame by the small script in _includes/sidebar.html.
+// Not blobs any more. The mass is one filled path, drawn on a canvas by the
+// script in _includes/sidebar.html, whose right-hand boundary is a function
+// of height and time -- a sum of five sine components with unrelated
+// wavelengths and periods, half of them travelling the other way. Inside it
+// is a surface like cloth draped over a frame: a low-resolution height map
+// of broad folds that rise and fall in place, higher toward the line, with
+// height mapped with no steps onto a palette of one or two hues at a time
+// (black through the hue to a lift toward light) and a little directional
+// light across the slopes. The hue is the shared clock's point on the
+// thermal ramp (see _thermal.scss). The include explains the knobs.
 //
 // This replaces a field of 32 divs pushed through an SVG blur filter, where
 // the silhouette was whatever the circles happened to merge into. A line is
@@ -372,42 +378,41 @@
     overflow-y: auto;
   }
 
-  // Fixed to the viewport, from the screen edge out to the ribbon's right edge
-  // plus the margin the line moves within. pointer-events: none matters: this
-  // covers the whole left region, and without it the overlay swallows wheel
-  // events aimed at the ribbon underneath it.
-  // Sized so the line RESTS 12px right of the ribbon's edge instead of on it:
-  // width = ribbon right edge + 12px of clear water + the 34px inset the line
-  // keeps from this box's own right side. The waves (±19.9px) and the mouse
-  // pull (+14px) stay short of the content column at every width; the
-  // tightest case is exactly 1280px, with ~3px to spare at the rare moment
-  // every wave crest and a full pull coincide.
+  // Fixed to the viewport, from the screen edge out to a few px past the
+  // line. pointer-events: none matters: this covers the whole left region,
+  // and without it the overlay swallows wheel events aimed at the ribbon
+  // underneath it.
+  // The line rests INSET px (6, set in the script) short of this box's right
+  // edge, and the box is sized per band so the line stops ~18px short of the
+  // content column's text at that band's narrowest width: text starts ~212px
+  // in at 925px, ~261px at 1024px and ~291px at 1280px (where #main caps).
+  // Wider than that, the column's left edge moves right faster than the
+  // ribbon grows, so the gap only opens. If EDGE_MOTION is turned back on in
+  // the script, the line needs ~34px of slack inside this box again for its
+  // crests and pulls, so widen INSET and narrow these accordingly.
   .fluid {
     display: block;
     position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
-    width: calc(25% - 19px);
+    width: calc(25% - 31px);
     z-index: 24;
     overflow: hidden;
     pointer-events: none;
 
-    // Fail-safe: the whole ribbon width is solid black in pure CSS, so the
-    // type is never on a bare page even if the script cannot run. 50px is
-    // this box's right edge minus the ribbon's right edge (identical in both
-    // width bands), so the straight fallback edge lands exactly on the
-    // ribbon. The script retires it (see .fluid--live below) after its first
-    // frame; it cannot stay up during animation or it would mask the wave
-    // troughs, which swing left of this edge.
+    // Fail-safe: the ribbon is solid black in pure CSS, so the type is never
+    // on a bare page even if the script cannot run; its right edge is the
+    // line's resting position (INSET from this box's edge). The script
+    // retires it (see .fluid--live below) after its first frame.
     &::before {
       content: "";
       position: absolute;
       top: 0;
       bottom: 0;
       left: 0;
-      right: 46px;
-      background: #000;
+      right: 6px;
+      background: #050514;
     }
 
     &.fluid--live::before {
@@ -415,14 +420,10 @@
     }
   }
 
-  .fluid__svg {
+  .fluid__canvas {
     display: block;
     width: 100%;
     height: 100%;
-  }
-
-  .fluid__edge {
-    fill: #000;
   }
 
   /*
@@ -455,16 +456,24 @@
     }
   }
 
+  // a heavier shadow than before, because the field behind the type is no
+  // longer reliably dark: at hot phases it runs to cyan and green there
   .sidebar .author__name,
   .sidebar .author__bio,
   .sidebar .author__urls {
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75), 0 0 12px rgba(0, 0, 0, 0.35);
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .fluid {
+    width: calc(25% - 7px);
   }
 }
 
 @media screen and (min-width: 1280px) {
   .fluid {
-    width: calc(25% - 43px);
+    width: calc(25% - 41px);
   }
 }
 

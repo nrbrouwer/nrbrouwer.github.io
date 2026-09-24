@@ -195,27 +195,19 @@
     letter-spacing: 0.02em;
     position: relative;
 
-    // ink underline that grows outward from the center on hover; the
-    // rainbow bar below it is the theme's :before element (further down)
-    &::after {
-      content: "";
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0.3em;
-      height: 1px;
-      background: currentColor;
-      transform: scaleX(0);
-      transform-origin: center;
-      transition: transform 0.25s ease;
-    }
+    // On hover the type itself blooms: the same swelling thermal rings as
+    // the pill buttons (see thermal-bloom in _thermal.scss), painted through
+    // the glyphs with background-clip: text while the ink fades to
+    // transparent, so the ramp sweeps out from the centre of the word.
+    @include thermal-bloom;
+    -webkit-background-clip: text;
+            background-clip: text;
+    transition: color 0.25s ease, background-size $bloom-out;
 
     &:hover {
-      color: #000;
-
-      &::after {
-        transform: scaleX(1);
-      }
+      color: transparent;
+      @include thermal-bloom-on;
+      transition: color 0.25s ease, background-size $bloom-in;
     }
   }
 
@@ -263,33 +255,6 @@
 
     a {
       position: relative;
-
-      &:before {
-        content: "";
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        height: 4px;
-        // full-spectrum rainbow sized to the link, so the bar always shows
-        // the entire rainbow once regardless of link width
-        background: $rainbow-gradient;
-        background-size: 200% 100%;
-        // 6s per full spectrum sweep: the gradient scrolls one link-width
-        // per cycle, so a slower rate reads as static on short links
-        animation: rainbow-barber 6s linear infinite;
-        width: 100%;
-        -webkit-transition: $global-transition;
-        transition: $global-transition;
-        -webkit-transform: scaleX(0);
-            -ms-transform: scaleX(0);
-                transform: scaleX(0); /* hide*/
-      }
-
-      &:hover:before {
-        -webkit-transform: scaleX(1);
-            -ms-transform: scaleX(1);
-                transform: scaleX(1); /* reveal*/
-      }
     }
   }
 

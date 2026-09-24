@@ -13,6 +13,7 @@
 @import "vendor/breakpoint/breakpoint"; // media query mixins
 @import "variables";
 @import "mixins";
+@import "thermal"; // colour functions and keyframes for the thermal clock
 @import "vendor/susy/susy";
 
 @import "reset";

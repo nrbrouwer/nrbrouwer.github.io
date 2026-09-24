@@ -4,26 +4,50 @@
 
 .masthead {
   position: fixed;
-  // identical viewport-pinned gradient as html (see _base.scss) so the
-  // fixed masthead blends seamlessly into the page background
-  background: $ambient-gradient;
-  background-size: 400% 400%;
-  background-attachment: fixed;
+  // static cold tint as the no-animation fallback; the animated tint is on
+  // ::before below, so the nav type is never repainted by the colour change
+  background-color: page-tint($heat-min);
   height: $masthead-height;
   top: 0;
   width: 100%;
-
-  // intro fade plus the shared ambient-sweep, timed identically to html's --
-  // including the wall-clock phase delay -- so the two viewport-pinned
-  // gradients move as one (keyframes in _base.scss, phase in head/custom.html)
-  animation: intro 0.3s 0.15s both, ambient-sweep 180s var(--ambient-phase, 0s) linear infinite alternate;
+  animation: intro 0.3s 0.15s both;
   z-index: 20;
+
+  // the same layer body::before paints for the page (see _base.scss), on the
+  // same clock and phase, so the fixed masthead is seamless with the page:
+  // it spans the full viewport width at the top, exactly where the page's
+  // sheen sits, so no fixed attachment is needed to line up. Its own
+  // composited layer for the same reason as body::before; z-index -1 puts
+  // it under the nav within the masthead's stacking context.
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background-color: page-tint($heat-min);
+    background-image: $page-sheen;
+    will-change: transform;
+    @include thermal-clock(thermal-page);
+  }
 
   &__inner-wrap {
     @include container;
     @include clearfix;
     padding: 1em 1em 1em;
     font-family: $sans-serif-narrow;
+
+    // The nav is centred in this wrap, and from 925px up to ~1170px the
+    // ferrofluid ribbon (see _sidebar.scss) reaches further in than the
+    // centred nav's first link starts. Extra left padding moves the nav's
+    // centre right by half of it; the formula gives ~10px of clearance at
+    // each width and fades to the plain 1em by 1168px. Written as a string
+    // because Ruby Sass would otherwise try to evaluate max() itself.
+    @media screen and (min-width: $sidebar-screen-min-width) {
+      padding-left: #{"max(1em, calc(600px - 50vw))"};
+    }
 
     @include breakpoint($x-large) {
       max-width: $x-large;

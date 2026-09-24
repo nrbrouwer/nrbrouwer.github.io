@@ -2,14 +2,37 @@
 
 {% if page.author_profile or layout.author_profile or page.sidebar %}
   {% if page.author_profile or layout.author_profile %}
-    <!-- Ferrofluid. The mass is a single filled path whose right-hand boundary
-         is a function of height and time; everything left of that line is
-         black. It sits OUTSIDE .sidebar so the ribbon can keep overflow-y:
-         auto, and takes no pointer events so it never intercepts scrolling. -->
+    <!-- Ferrofluid. Drawn on a canvas by the script below. The mass is a
+         single filled path whose right-hand boundary is a function of height
+         and time. Inside it is one of two surfaces, chosen by SURFACE in the
+         script. "trace": the mass is black, and the cursor leaves warmth
+         where it passes. The more a spot is covered, the further up the
+         thermal ramp it climbs -- black, deep purple, indigo, blue, teal,
+         green, deep red, magenta, hot pink -- the way a thermal camera
+         colours heat, so a lingered spot shows the ramp as rings; it slowly
+         cools back down, and heat spreads a little to its neighbours, as it
+         would. In this mode the edge is still (EDGE_MOTION), so the cursor's
+         only effect is warmth. "cloth": a surface like cloth draped over a
+         frame, a
+         low-resolution height map (CELL px cells, scaled up without
+         smoothing, so it reads as a thermal sensor's pixels) of broad,
+         smooth undulation that rises and falls in place over time rather
+         than flowing sideways. Height is colour: each cell's height is
+         quantised into a few bands and mapped onto a palette of one or two
+         hues at a time -- black through darker shades of the hue to the hue
+         itself, into its neighbour on the thermal ramp, and lifted a little
+         toward light at the top -- so the bands read as the contours of a
+         topographic map, and a little directional light across the slopes
+         makes the folds read as a solid surface. Which hue is the site's 180s thermal
+         clock, read from the CSS custom properties in _sass/_thermal.scss,
+         so the ribbon, the page tint and the hover fills always show the
+         same point on the ramp; over the cycle the window slides through
+         every hue, one or two at a time. The surface refreshes at FIELD_HZ,
+         the wave at the display's rate.
+         It sits OUTSIDE .sidebar so the ribbon can keep overflow-y: auto, and
+         takes no pointer events so it never intercepts scrolling. -->
     <div class="fluid" aria-hidden="true">
-      <svg class="fluid__svg" preserveAspectRatio="none" focusable="false">
-        <path class="fluid__edge" d=""></path>
-      </svg>
+      <canvas class="fluid__canvas"></canvas>
     </div>
     <!-- The wave profile is a sum of five sine components with unrelated
          wavelengths and periods, half travelling the other way, so the edge
@@ -23,9 +46,11 @@
     <script>
       (function () {
         function start() {
-          var edge = document.querySelector('.fluid__edge');
-          if (!edge) { return; }
-          var box = edge.parentNode.parentNode;
+          var canvas = document.querySelector('.fluid__canvas');
+          if (!canvas || !canvas.getContext) { return; }
+          var ctx = canvas.getContext('2d');
+          if (!ctx) { return; }
+          var box = canvas.parentNode;
           var still = window.matchMedia &&
                       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
           var waves = [
@@ -35,7 +60,7 @@
             { amp: 2.3, len:  182, per:  60000, dir: -1 },
             { amp: 1.4, len:  113, per:  45000, dir:  1 }
           ];
-          var TAU = Math.PI * 2, INSET = 34, STEP = 8, drawn = false;
+          var TAU = Math.PI * 2, STEP = 8, drawn = false;
 
           /* One surface, not two layers. The lattice of points IS the edge;
              the ambient wave shape is only a weak attractor it is forever
@@ -49,6 +74,281 @@
           var MAXPRESS = 30, MAXPULL = 12;
           var pos = [], mom = [];
 
+          /* Surface knobs. CELL is the size of one cell; FIELD_HZ how often
+             the surface is recomputed; NOISE_SCALE the size of a fold in
+             cells; MORPH seconds per unit of noise time, i.e. how slowly
+             the folds rise and fall. The height of a cell, 0 to 1, is
+             T_CENTRE plus two octaves of smooth noise of up to NOISE_AMP/2
+             plus a slow swell of up to BREATH/2 over folds BREATH_SCALE
+             times larger, plus (XSPREAD, 0 here) an optional bias from low
+             at the screen edge to high at the resting line, curved by
+             XCURVE; it is off because it stacked the bands left to right
+             instead of letting the folds place them. LIGHT is how much
+             the directional light shades the slopes (0 for none); SLOPE how
+             steep the surface is taken to be for that shading. BANDS is how
+             many height bands the colour is quantised into (0 for a
+             continuous gradient): with folds this broad and smooth, bands
+             read as the contours of a topographic map, with clean edges
+             between flat regions, rather than as a gradient. */
+          var CELL = 4, FIELD_HZ = 12, NOISE_SCALE = 30, MORPH = 14;
+          var T_CENTRE = 0.5, XSPREAD = 0, XCURVE = 1.6;
+          var NOISE_AMP = 0.55, BREATH = 0.3, BREATH_SCALE = 3;
+          var LIGHT = 0.3, SLOPE = 6, BANDS = 5;
+
+          /* Which surface: 'trace' (black until the cursor warms it) or
+             'cloth' (the draped, folding height map). EDGE_MOTION turns the
+             edge's wave and its response to the cursor on or off; off, the
+             line is straight and still. Trace knobs: TRACE_R is the radius
+             of the cursor's warmth in cells; TRACE_RATE how much heat one
+             event leaves at its centre per 16.7ms it covers, so about half a
+             second of hovering saturates a spot and a quick pass leaves a
+             faint one; TRACE_MAX the heat that reaches the top of the ramp;
+             TRACE_BANDS how many steps the ramp is quantised into in this
+             mode (0 for the continuous ramp); TRACE_COOL the seconds a spot
+             takes to cool to a third of its heat; TRACE_SPREAD how much heat
+             leaks to neighbouring cells per refresh; TRACE_LIGHT the light
+             shading used in this mode, kept low so the rings stay flat. */
+          var SURFACE = 'trace', EDGE_MOTION = false;
+          /* how far the line rests inside the box's right edge: room for
+             crests and pulls when the edge moves, a sliver when it does not
+             (the box widths in _sidebar.scss assume the sliver) */
+          var INSET = EDGE_MOTION ? 34 : 6;
+          var TRACE_R = 5, TRACE_RATE = 0.04, TRACE_MAX = 1.3, TRACE_BANDS = 0;
+          var TRACE_COOL = 25, TRACE_SPREAD = 0.05, TRACE_LIGHT = 0.15;
+
+          /* Palette knobs. The rim hue is the clock's point on the ramp;
+             the palette runs from black up to the ramp HUE_BELOW before it
+             (T_DARK of the way up), on to HUE_ABOVE past it (by T_HUE), then
+             lifts LIFT of the way to white at the top. HUE_MAX keeps the
+             window short of the ramp's hot end, so the light comes from the
+             lift and the crests stay a colour. */
+          var HUE_BELOW = 0.07, HUE_ABOVE = 0.05, HUE_MAX = 0.94;
+          var T_DARK = 0.45, T_HUE = 0.8, LIFT = 0.2;
+
+          /* The ramp and the clock come from CSS (see _thermal.scss), so
+             the colours here are the same ones the page tint and the hover
+             fills use. */
+          var rootStyle = getComputedStyle(document.documentElement);
+          var heatMin = parseFloat(rootStyle.getPropertyValue('--thermal-heat-min')) || 0.22;
+          var heatMax = parseFloat(rootStyle.getPropertyValue('--thermal-heat-max')) || 1;
+          var stops = (function () {
+            var raw = rootStyle.getPropertyValue('--thermal-ramp').replace(/["']/g, '').trim();
+            var out = [], parts = raw.split(','), i, m;
+            for (i = 0; i < parts.length; i++) {
+              m = /([\d.]+)\s+#([0-9a-f]{6})/i.exec(parts[i]);
+              if (m) {
+                out.push([parseFloat(m[1]), parseInt(m[2].slice(0, 2), 16),
+                          parseInt(m[2].slice(2, 4), 16), parseInt(m[2].slice(4, 6), 16)]);
+              }
+            }
+            if (out.length < 2) {
+              out = [[0, 5, 5, 20], [0.28, 28, 63, 196], [0.63, 242, 223, 58], [1, 255, 232, 240]];
+            }
+            return out;
+          })();
+          function rampAt(t) {
+            var s, a, b, f;
+            if (t < 0) { t = 0; } else if (t > 1) { t = 1; }
+            for (s = 1; s < stops.length - 1 && t > stops[s][0]; s++) {}
+            a = stops[s - 1]; b = stops[s];
+            f = (t - a[0]) / (b[0] - a[0]);
+            if (f < 0) { f = 0; } else if (f > 1) { f = 1; }
+            return [a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f, a[3] + (b[3] - a[3]) * f];
+          }
+
+          /* Trace mode's palette: the whole ramp, black to hot pink, as a
+             table of 256 colours over heat (0 to TRACE_MAX); built once. */
+          var lut = new Uint8ClampedArray(256 * 3);
+          function buildTraceLut() {
+            var i, t, c, col;
+            for (i = 0; i < 256; i++) {
+              t = i / 255;
+              if (TRACE_BANDS) {
+                t = Math.floor(t * TRACE_BANDS) / (TRACE_BANDS - 1);
+                if (t > 1) { t = 1; }
+              }
+              col = rampAt(t);
+              for (c = 0; c < 3; c++) { lut[i * 3 + c] = col[c]; }
+            }
+          }
+
+          /* Cloth mode's palette for the rim hue h, as a table of 256
+             colours over height, quantised into BANDS steps; rebuilt at
+             each refresh, since h moves. */
+          function buildLut(h) {
+            var hi = h + HUE_ABOVE; if (hi > HUE_MAX) { hi = HUE_MAX; }
+            var cLo = rampAt(h - HUE_BELOW), cHi = rampAt(hi);
+            var black = [5, 5, 20], white = [255, 255, 255];
+            var i, t, f, c, a, b;
+            for (i = 0; i < 256; i++) {
+              t = i / 255;
+              if (BANDS) {
+                t = Math.floor(t * BANDS) / (BANDS - 1);
+                if (t > 1) { t = 1; }
+              }
+              if (t < T_DARK) {
+                f = Math.pow(t / T_DARK, 1.3); a = black; b = cLo;
+              } else if (t < T_HUE) {
+                f = (t - T_DARK) / (T_HUE - T_DARK); a = cLo; b = cHi;
+              } else {
+                f = (t - T_HUE) / (1 - T_HUE) * LIFT; a = cHi; b = white;
+              }
+              for (c = 0; c < 3; c++) { lut[i * 3 + c] = a[c] + (b[c] - a[c]) * f; }
+            }
+          }
+
+          /* Where the thermal clock is now: the same 360s wall-clock cycle
+             the CSS animations run on (a 180s rise and a 180s fall), so the
+             field and the page tint agree without talking to each other.
+             Reduced motion: the CSS side sits at its cold resting state, so
+             the field does too. Returns the rim's position on the ramp. */
+          function heatNow(t) {
+            if (still) { return heatMin; }
+            var ph = (t / 1000) % 360;
+            ph = ph < 180 ? ph / 180 : 2 - ph / 180;
+            return heatMin + (heatMax - heatMin) * ph;
+          }
+
+          /* 3-D value noise on a seeded lattice, so the surface is the same
+             on every page and only time (wall-clock) moves it; a two-octave
+             sum for the folds. */
+          var LAT = 32, lat = new Float32Array(LAT * LAT * LAT);
+          var seed = 2463534242;
+          for (var li = 0; li < lat.length; li++) {
+            seed ^= seed << 13; seed ^= seed >>> 17; seed ^= seed << 5;
+            lat[li] = (seed >>> 0) / 4294967296;
+          }
+          function latAt(i, j, k) {
+            return lat[(((i & 31) * LAT) + (j & 31)) * LAT + (k & 31)];
+          }
+          function noise3(x, y, z) {
+            var xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z);
+            var fx = x - xi, fy = y - yi, fz = z - zi;
+            fx = fx * fx * (3 - 2 * fx);
+            fy = fy * fy * (3 - 2 * fy);
+            fz = fz * fz * (3 - 2 * fz);
+            var a = latAt(xi, yi, zi), b = latAt(xi + 1, yi, zi);
+            var c = latAt(xi, yi + 1, zi), d = latAt(xi + 1, yi + 1, zi);
+            var e = latAt(xi, yi, zi + 1), f = latAt(xi + 1, yi, zi + 1);
+            var g = latAt(xi, yi + 1, zi + 1), h = latAt(xi + 1, yi + 1, zi + 1);
+            var ab = a + (b - a) * fx, cd = c + (d - c) * fx;
+            var ef = e + (f - e) * fx, gh = g + (h - g) * fx;
+            var lo = ab + (cd - ab) * fy, hi = ef + (gh - ef) * fy;
+            return lo + (hi - lo) * fz;
+          }
+          function fbm2(x, y, z) {
+            return noise3(x, y, z) * 0.8 +
+                   noise3(x * 2.1 + 3.1, y * 2.1 + 7.7, z * 1.5 + 2.1) * 0.2;
+          }
+
+          /* The surface lives on a small canvas, one pixel per cell, and is
+             scaled up without smoothing when painted. Heights are kept in
+             hmap between the two passes. */
+          var field = document.createElement('canvas');
+          var fctx = field.getContext('2d');
+          var fieldW = 0, fieldH = 0, img = null, hmap = null, heat = null, lastField = -1e9;
+          var traceLutReady = false;
+          var LX = -0.45, LY = -0.55, LZ = 0.7;
+          var LL = Math.sqrt(LX * LX + LY * LY + LZ * LZ);
+          LX /= LL; LY /= LL; LZ /= LL;
+
+          /* Trace mode: the cursor deposits a gaussian of warmth into the
+             heat grid, scaled to the time the event covers (see the
+             mousemove handler), capped at TRACE_MAX. The canvas is pinned
+             at the viewport's origin, so client coordinates are canvas
+             coordinates. */
+          function warm(x, y, scale) {
+            if (!heat) { return; }
+            var cx = x / CELL, cy = y / CELL, s2 = 2 * TRACE_R * TRACE_R;
+            var i0 = Math.max(0, Math.floor(cx - 2 * TRACE_R));
+            var i1 = Math.min(fieldW - 1, Math.ceil(cx + 2 * TRACE_R));
+            var j0 = Math.max(0, Math.floor(cy - 2 * TRACE_R));
+            var j1 = Math.min(fieldH - 1, Math.ceil(cy + 2 * TRACE_R));
+            var amt = TRACE_RATE * scale, i, j, dx, dy, v;
+            for (j = j0; j <= j1; j++) {
+              for (i = i0; i <= i1; i++) {
+                dx = i + 0.5 - cx; dy = j + 0.5 - cy;
+                v = heat[j * fieldW + i] + amt * Math.exp(-(dx * dx + dy * dy) / s2);
+                if (v > TRACE_MAX) { v = TRACE_MAX; }
+                heat[j * fieldW + i] = v;
+              }
+            }
+          }
+
+          function renderField(t, w) {
+            var i, j, p = 0;
+            if (SURFACE === 'trace') {
+              if (!traceLutReady) { buildTraceLut(); traceLutReady = true; }
+              /* Cool every cell by the same factor, and let a little heat
+                 leak to its four neighbours; the result is the height map
+                 for the colour pass. hmap is the scratch copy. */
+              var cool = Math.exp(-Math.log(3) / (TRACE_COOL * FIELD_HZ));
+              var hl, hr, hu, hd, hc, q;
+              for (j = 0; j < fieldH; j++) {
+                for (i = 0; i < fieldW; i++) {
+                  q = j * fieldW + i;
+                  hc = heat[q];
+                  hl = heat[i > 0 ? q - 1 : q];
+                  hr = heat[i < fieldW - 1 ? q + 1 : q];
+                  hu = heat[j > 0 ? q - fieldW : q];
+                  hd = heat[j < fieldH - 1 ? q + fieldW : q];
+                  hmap[q] = (hc + TRACE_SPREAD * ((hl + hr + hu + hd) * 0.25 - hc)) * cool;
+                }
+              }
+              var swap = heat; heat = hmap; hmap = swap;
+            } else {
+              buildLut(heatNow(t));
+              var edgeCell = (w - INSET) / CELL;
+              var z = t / (MORPH * 1000);
+              var u, px, py, hgt;
+              /* First pass: the height of every cell. The noise evolves in
+                 its third dimension only, so a fold rises and falls where
+                 it is rather than travelling. */
+              for (j = 0; j < fieldH; j++) {
+                for (i = 0; i < fieldW; i++) {
+                  u = (i + 0.5) / edgeCell;
+                  if (u > 1) { u = 1; }
+                  px = i / NOISE_SCALE;
+                  py = j / NOISE_SCALE;
+                  hgt = T_CENTRE + (Math.pow(u, XCURVE) - 0.5) * XSPREAD +
+                        (fbm2(px, py, z) - 0.5) * NOISE_AMP +
+                        (noise3(px / BREATH_SCALE + 11.1, py / BREATH_SCALE + 7.7, z * 0.5 + 3.3) - 0.5) * BREATH;
+                  hmap[p++] = hgt;
+                }
+              }
+            }
+            /* Second pass: colour by height, shaded by the slope's facing
+               toward the light (a flat cell shades to exactly 1). In trace
+               mode the height is the (now cooled) heat. */
+            var src = (SURFACE === 'trace') ? heat : hmap;
+            var light = (SURFACE === 'trace') ? TRACE_LIGHT : LIGHT;
+            var scale = (SURFACE === 'trace') ? 255 / TRACE_MAX : 255;
+            var d = img.data, gx, gy, nl, ndl, shade, k, c, il, ir, ju, jd;
+            p = 0;
+            for (j = 0; j < fieldH; j++) {
+              ju = (j > 0 ? j - 1 : j) * fieldW;
+              jd = (j < fieldH - 1 ? j + 1 : j) * fieldW;
+              for (i = 0; i < fieldW; i++) {
+                il = i > 0 ? i - 1 : i;
+                ir = i < fieldW - 1 ? i + 1 : i;
+                c = src[j * fieldW + i];
+                gx = (src[j * fieldW + ir] - src[j * fieldW + il]) * SLOPE;
+                gy = (src[jd + i] - src[ju + i]) * SLOPE;
+                nl = Math.sqrt(gx * gx + gy * gy + 1);
+                ndl = (LZ - gx * LX - gy * LY) / nl;
+                if (ndl < 0) { ndl = 0; }
+                shade = (1 - light) + light * ndl / LZ;
+                k = Math.round(c * scale);
+                if (k < 0) { k = 0; } else if (k > 255) { k = 255; }
+                d[p++] = lut[k * 3] * shade;
+                d[p++] = lut[k * 3 + 1] * shade;
+                d[p++] = lut[k * 3 + 2] * shade;
+                d[p++] = 255;
+              }
+            }
+            fctx.putImageData(img, 0, 0);
+          }
+
           /* First page of a visit: the surface starts straight and the wave
              attractor fades in over eight seconds, drawing the line into
              motion. Later pages: the surface starts already settled on the
@@ -60,8 +360,33 @@
             if (wake) { sessionStorage.setItem('nb-oozed', '1'); }
           } catch (err) { wake = false; }
 
-          var mx = -1e4, my = -1e4, pmx = 0, pmy = 0, pmt = 0, havePrev = false;
-          var vel = 0, vely = 0;
+          /* Horizontal motion presses or pulls symmetrically. Vertical
+             motion is a dipole: material piles up ahead of the stroke and
+             a wake trails behind it, which is what a finger dragged along
+             a thick surface does. The dipole is the gaussian's odd
+             derivative, so an upward stroke mirrors a downward one. The
+             kick is applied per mouse event, scaled to the time the event
+             covers, rather than once per frame from a smoothed velocity:
+             that way a quick flick across the edge lands in full even when
+             frames are slow, instead of passing between two of them. */
+          var restX = 0;
+          function kick(x, y, vx, vy, scale) {
+            var n = pos.length, i, g, e;
+            if (!n || !EDGE_MOTION) { return; }
+            var ci = Math.round(y / STEP);
+            if (ci < 0 || ci >= n) { return; }
+            var prox = 1 - Math.abs(x - (restX + pos[ci])) / TOUCH;
+            if (prox <= 0) { return; }
+            prox = prox * prox * (3 - 2 * prox);
+            var kickH = vx * INJECT * prox * scale;
+            var kickV = vy * INJECTV * prox * scale;
+            for (i = 0; i < n; i++) {
+              g = (i * STEP - y) / SGM;
+              e = Math.exp(-0.5 * g * g);
+              mom[i] += (kickH + kickV * g) * e;
+            }
+          }
+          var pmx = 0, pmy = 0, pmt = 0, havePrev = false;
           window.addEventListener('mousemove', function (e) {
             var t = e.timeStamp;
             if (havePrev) {
@@ -69,18 +394,16 @@
               if (dt >= 1 && dt < 120) {
                 var vpm = (e.clientX - pmx) / dt;
                 if (vpm > 3) { vpm = 3; } else if (vpm < -3) { vpm = -3; }
-                vel = vel * 0.5 + vpm * 0.5;
                 var vpmy = (e.clientY - pmy) / dt;
                 if (vpmy > 3) { vpmy = 3; } else if (vpmy < -3) { vpmy = -3; }
-                vely = vely * 0.5 + vpmy * 0.5;
+                kick(e.clientX, e.clientY, vpm, vpmy, dt / 16.7);
               }
             }
+            if (SURFACE === 'trace') {
+              warm(e.clientX, e.clientY, (havePrev && t - pmt < 120) ? (t - pmt) / 16.7 : 1);
+            }
             pmx = e.clientX; pmy = e.clientY; pmt = t; havePrev = true;
-            mx = e.clientX; my = e.clientY;
           }, { passive: true });
-          document.documentElement.addEventListener('mouseleave', function () {
-            mx = -1e4; vel = 0; vely = 0;
-          });
 
           function waveAt(y, t) {
             var s = 0, v;
@@ -114,50 +437,67 @@
                   mom[i] = 0;
                 }
               }
-              var restX = w - INSET;
-
-              /* Horizontal motion presses or pulls symmetrically. Vertical
-                 motion is a dipole: material piles up ahead of the stroke and
-                 a wake trails behind it, which is what a finger dragged along
-                 a thick surface does. The dipole is the gaussian's odd
-                 derivative, so an upward stroke mirrors a downward one. */
-              var ci = Math.round(my / STEP);
-              if (ci >= 0 && ci < n &&
-                  (vel > 0.02 || vel < -0.02 || vely > 0.02 || vely < -0.02)) {
-                var prox = 1 - Math.abs(mx - (restX + pos[ci])) / TOUCH;
-                if (prox > 0) {
-                  prox = prox * prox * (3 - 2 * prox);
-                  var kickH = vel * INJECT * prox;
-                  var kickV = vely * INJECTV * prox;
-                  var g, e;
-                  for (i = 0; i < n; i++) {
-                    g = (i * STEP - my) / SGM;
-                    e = Math.exp(-0.5 * g * g);
-                    mom[i] += (kickH + kickV * g) * e;
-                  }
-                }
-              }
-              vel = vel * 0.9;
-              vely = vely * 0.9;
+              restX = w - INSET;
 
               var prev, next, acc, tgt;
-              for (i = 0; i < n; i++) {
-                prev = (i > 0) ? pos[i - 1] : pos[i];
-                next = (i < n - 1) ? pos[i + 1] : pos[i];
-                tgt = env * waveAt(i * STEP, t);
-                acc = TENSION * (prev + next - 2 * pos[i]) + kEff * (tgt - pos[i]);
-                mom[i] = (mom[i] + acc) * DAMP;
-                pos[i] += mom[i];
-                if (pos[i] < tgt - MAXPRESS) { pos[i] = tgt - MAXPRESS; mom[i] = 0; }
-                if (pos[i] > tgt + MAXPULL)  { pos[i] = tgt + MAXPULL;  mom[i] = 0; }
+              if (EDGE_MOTION) {
+                for (i = 0; i < n; i++) {
+                  prev = (i > 0) ? pos[i - 1] : pos[i];
+                  next = (i < n - 1) ? pos[i + 1] : pos[i];
+                  tgt = env * waveAt(i * STEP, t);
+                  acc = TENSION * (prev + next - 2 * pos[i]) + kEff * (tgt - pos[i]);
+                  mom[i] = (mom[i] + acc) * DAMP;
+                  pos[i] += mom[i];
+                  if (pos[i] < tgt - MAXPRESS) { pos[i] = tgt - MAXPRESS; mom[i] = 0; }
+                  if (pos[i] > tgt + MAXPULL)  { pos[i] = tgt + MAXPULL;  mom[i] = 0; }
+                }
+              } else {
+                /* a straight, still edge at the resting line */
+                for (i = 0; i < n; i++) { pos[i] = 0; mom[i] = 0; }
               }
 
-              var d = 'M0,0', x;
-              for (i = 0; i < n; i++) {
-                x = restX + pos[i];
-                d += ' L' + x.toFixed(1) + ',' + (i * STEP);
+              /* The surface: recomputed only at FIELD_HZ, and whenever the
+                 box changes size. */
+              var cw = Math.ceil(w / CELL), ch = Math.ceil(h / CELL);
+              if (cw !== fieldW || ch !== fieldH) {
+                fieldW = cw; fieldH = ch;
+                field.width = cw; field.height = ch;
+                img = fctx.createImageData(cw, ch);
+                hmap = new Float32Array(cw * ch);
+                heat = new Float32Array(cw * ch);
+                lastField = -1e9;
               }
-              edge.setAttribute('d', d + ' L0,' + ((n - 1) * STEP) + ' Z');
+              if (t - lastField >= 1000 / FIELD_HZ) {
+                renderField(t, w);
+                lastField = t;
+              }
+
+              /* The picture, every frame: the mass, then the field inside
+                 it alone (source-atop paints only where the mass is), so
+                 the edge stays a solid boundary against the page. Setting
+                 the canvas size clears the context, so the transform and
+                 smoothing are restated each time. */
+              var dpr = window.devicePixelRatio || 1;
+              var pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+              if (canvas.width !== pw || canvas.height !== ph) {
+                canvas.width = pw; canvas.height = ph;
+              }
+              ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+              ctx.globalCompositeOperation = 'source-over';
+              ctx.clearRect(0, 0, w, h);
+              ctx.imageSmoothingEnabled = false;
+              ctx.fillStyle = '#050514';
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              for (i = 0; i < n; i++) {
+                ctx.lineTo(restX + pos[i], i * STEP);
+              }
+              ctx.lineTo(0, (n - 1) * STEP);
+              ctx.closePath();
+              ctx.fill();
+              ctx.globalCompositeOperation = 'source-atop';
+              ctx.drawImage(field, 0, 0, cw * CELL, ch * CELL);
+              ctx.globalCompositeOperation = 'source-over';
               if (!drawn) {
                 drawn = true;
                 box.classList.add('fluid--live');

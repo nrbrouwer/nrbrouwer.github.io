@@ -110,7 +110,7 @@
   }
 
   // no underline: links are carried by weight plus the drifting link colour
-  // (see ambient-link-drift in _base.scss). .btn keeps its own pill styling
+  // (see thermal-ink in _base.scss). .btn keeps its own pill styling
   a:not(.btn) {
     text-decoration: none;
     font-weight: 700;
@@ -442,14 +442,14 @@
 
 
 /*
-   Ambient-background integration
+   Page-tint integration
    ========================================================================== */
 
 // Content figures are mostly plots exported with baked-in white backgrounds.
 // Multiply blending turns white into whatever color sits underneath, so the
-// figures track the ambient-drift animation instead of floating in white
-// boxes. (Photographs pick up a slight tint from the background hue, but at
-// ~95% lightness the effect is negligible.)
+// figures track the page tint (see _thermal.scss) instead of floating in
+// white boxes. (Photographs pick up a slight tint from the background hue,
+// but at ~88% lightness the effect is small.)
 .page__content img,
 .archive img {
   mix-blend-mode: multiply;

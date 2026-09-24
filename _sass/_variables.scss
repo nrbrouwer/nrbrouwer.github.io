@@ -45,20 +45,54 @@ $type-size-6                : 0.75em;   // ~12px
 $type-size-7                : 0.6875em; // ~11px
 $type-size-8                : 0.625em;  // ~10px
 
-/* rainbow used by the nav underline and button hovers; holds two full
-   spectrum cycles so a 200% background-size shows exactly one cycle and
-   the rainbow-barber keyframe (see _animations.scss) loops seamlessly */
-$rainbow-gradient: linear-gradient(90deg,
-  #ff004d 0%, #ff8a00 7.1%, #ffe600 14.3%, #2bd94f 21.4%,
-  #00b3ff 28.6%, #7a5cff 35.7%, #ff2bd1 42.9%, #ff004d 50%,
-  #ff8a00 57.1%, #ffe600 64.3%, #2bd94f 71.4%, #00b3ff 78.6%,
-  #7a5cff 85.7%, #ff2bd1 92.9%, #ff004d 100%);
+/*
+   Thermal palette
+   ========================================================================== */
+
+/* The site's colour is one temperature scale, a deep thermal ramp: black
+   (cold) through deep purple, indigo, blue, teal and green to deep red,
+   magenta and a hot pink end. No yellow or cyan: every stop is a deep,
+   saturated colour, so nothing on the site strays into pastel. Only one
+   point on it shows at a time -- the rim temperature, which drifts along the
+   ramp over the 180s clock -- and every coloured element samples that point:
+   the ferrofluid ribbon, the page tint, link ink and the hover fills, via
+   the functions and keyframes in _thermal.scss. Pairs are (temperature,
+   colour). */
+$thermal-ramp: (
+  (0,    #050514),  // black
+  (0.12, #2a0a4e),  // deep purple
+  (0.26, #241b8a),  // indigo
+  (0.40, #1c46b8),  // blue
+  (0.54, #12727a),  // teal
+  (0.66, #1f7a35),  // deep green
+  (0.80, #9c1d2a),  // deep red
+  (0.92, #b8177f),  // magenta
+  (1,    #ff5aa8)   // hot pink
+);
+
+/* the ribbon's rim temperature breathes between these over the 180s clock;
+   $heat-steps is how many keyframes describe the sweep (colour is
+   interpolated between them) */
+$heat-min                   : 0.22;
+$heat-max                   : 1;
+$heat-steps                 : 10;
+
+/* page tint relative to the rim. 0deg makes the page a pale wash of the
+   ribbon's current typical hue, so the field reads as continuing faintly
+   into the page. 180deg puts the page opposite it on the hue wheel instead
+   -- a cool page behind a hot edge, a warm page behind a cold one. */
+$thermal-page-hue-shift     : 0deg;
+$thermal-page-saturation    : 58%;
+$thermal-page-lightness     : 85%;
 
 /* masthead properties */
 $masthead-height            : 70px;
 
 /* Sidebar properties */
-$sidebar-screen-min-width   : 1024px;
+// the profile is a fixed column with the ferrofluid ribbon from here up. It
+// equals $large, where the theme first lays the profile out as a column at
+// all, so the ribbon exists whenever the column does
+$sidebar-screen-min-width   : 925px;
 $sidebar-link-max-width     : 250px;
 
 
@@ -77,7 +111,10 @@ $body-color                 : #fff;
 $background-color           : #fff;
 $code-background-color      : #fafafa;
 $code-background-color-dark : $light-gray;
-$text-color                 : $dark-gray;
+// near-black with a little indigo in it, so body type sits inside the
+// thermal palette rather than reading as neutral grey against it
+$ink                        : #17132b;
+$text-color                 : $ink;
 $border-color               : $lighter-gray;
 
 $primary-color              : #7a8288;
@@ -117,8 +154,8 @@ $xing-color                 : #006567;
 $link-color                 : $info-color;
 $link-color-hover           : mix(#000, $link-color, 25%);
 $link-color-visited         : mix(#fff, $link-color, 25%);
-$masthead-link-color        : $primary-color;
-$masthead-link-color-hover  : mix(#000, $primary-color, 25%);
+$masthead-link-color        : mix(#fff, $ink, 15%);
+$masthead-link-color-hover  : #000;
 
 
 /*
