@@ -39,14 +39,14 @@
     padding: 1em 1em 1em;
     font-family: $sans-serif-narrow;
 
-    // The nav is centred in this wrap, and from 925px up to ~1170px the
+    // The nav is centred in this wrap, and from 925px up to ~1110px the
     // ferrofluid ribbon (see _sidebar.scss) reaches further in than the
     // centred nav's first link starts. Extra left padding moves the nav's
     // centre right by half of it; the formula gives ~10px of clearance at
-    // each width and fades to the plain 1em by 1168px. Written as a string
+    // each width and fades to the plain 1em by 1108px. Written as a string
     // because Ruby Sass would otherwise try to evaluate max() itself.
     @media screen and (min-width: $sidebar-screen-min-width) {
-      padding-left: #{"max(1em, calc(600px - 50vw))"};
+      padding-left: #{"max(1em, calc(570px - 50vw))"};
     }
 
     @include breakpoint($x-large) {

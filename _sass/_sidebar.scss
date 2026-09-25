@@ -61,20 +61,20 @@
   // starts only ~212px from the screen edge at the narrowest (925px, where
   // the profile first becomes a column), so the column is narrowest there.
   @media screen and (min-width: $sidebar-screen-min-width) {
-    width: 160px;
-    max-width: 160px;
+    width: 145px;
+    max-width: 145px;
     margin-left: 0;
     left: calc(25% - 220px);
   }
 
   @media screen and (min-width: 1024px) {
-    width: 185px;
-    max-width: 185px;
+    width: 170px;
+    max-width: 170px;
   }
 
   @media screen and (min-width: 1280px) {
-    width: 225px;
-    max-width: 225px;
+    width: 210px;
+    max-width: 210px;
     left: calc(25% - 294px);
   }
 
@@ -383,9 +383,9 @@
   // and without it the overlay swallows wheel events aimed at the ribbon
   // underneath it.
   // The line rests INSET px (6, set in the script) short of this box's right
-  // edge, and the box is sized per band so the line stops ~18px short of the
-  // content column's text at that band's narrowest width: text starts ~212px
-  // in at 925px, ~261px at 1024px and ~291px at 1280px (where #main caps).
+  // edge, and the box is sized per band so the line stops ~25px short of the
+  // content column's text at that band's narrowest width: text starts ~204px
+  // in at 925px, ~248px at 1024px and ~278px at 1280px (where #main caps).
   // Wider than that, the column's left edge moves right faster than the
   // ribbon grows, so the gap only opens. If EDGE_MOTION is turned back on in
   // the script, the line needs ~34px of slack inside this box again for its
@@ -396,7 +396,7 @@
     top: 0;
     bottom: 0;
     left: 0;
-    width: calc(25% - 31px);
+    width: calc(25% - 46px);
     z-index: 24;
     overflow: hidden;
     pointer-events: none;
@@ -467,13 +467,13 @@
 
 @media screen and (min-width: 1024px) {
   .fluid {
-    width: calc(25% - 7px);
+    width: calc(25% - 22px);
   }
 }
 
 @media screen and (min-width: 1280px) {
   .fluid {
-    width: calc(25% - 41px);
+    width: calc(25% - 56px);
   }
 }
 
