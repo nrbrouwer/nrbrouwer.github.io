@@ -195,19 +195,33 @@
     letter-spacing: 0.02em;
     position: relative;
 
-    // On hover the type itself blooms: the same swelling thermal rings as
-    // the pill buttons (see thermal-bloom in _thermal.scss), painted through
-    // the glyphs with background-clip: text while the ink fades to
-    // transparent, so the ramp sweeps out from the centre of the word.
+    // On hover the type itself heats up: the same thermal rings as the pill
+    // buttons, painted through the glyphs with background-clip: text while
+    // the ink fades to transparent. With the hover-heat script
+    // (assets/js/thermal-hover.js) the word glows hotter the longer it is
+    // hovered and cools after; without it, the plain CSS bloom swells (see
+    // thermal-bloom in _thermal.scss).
     @include thermal-bloom;
     -webkit-background-clip: text;
             background-clip: text;
     transition: color 0.25s ease, background-size $bloom-out;
 
-    &:hover {
+    html:not(.heat-hover) &:hover {
       color: transparent;
       @include thermal-bloom-on;
       transition: color 0.25s ease, background-size $bloom-in;
+    }
+
+    .heat-hover & {
+      background-image: var(--heat-fill, none);
+      background-size: 100% 100%;
+      transition: color 0.3s ease;
+    }
+
+    // the ink gives way while the script says the word is warm, which can
+    // outlast the hover while it cools
+    &.is-warm {
+      color: transparent;
     }
   }
 

@@ -13,19 +13,24 @@
 // ramp instead, as a thermal camera would. The palette is $thermal-ramp in
 // _variables.scss.
 
-// Bloom: the hover effect for the pill buttons and the nav type. Points of
-// the ramp as concentric rings, hottest at the centre and black at the rim,
-// drawn as a background image that starts at zero size (so nothing shows)
-// and swells on hover to $bloom-size of the element. Its black outer stop
-// passes beyond the element as it grows, so the eye sees the colours sweep
-// outward from the centre and the field settle as hot pink at the centre
-// fading to deep purple at the edges. An ellipse, so wide elements bloom to
-// their ends. Leaving shrinks it back.
+// Bloom: the hover effect for the pill buttons and the nav type.
 //
-// $bloom-samples are the ramp positions the bloom passes through, centre
+// Normally the hover-heat script (assets/js/thermal-hover.js) draws it: the
+// element heats up the longer the cursor rests on it and cools after it
+// leaves, coloured from --bloom-ramp, published at the end of this file.
+//
+// Without the script (the html element lacks the heat-hover class), it falls
+// back to a plain CSS bloom: the ramp as concentric rings, hottest at the
+// centre and black at the rim, drawn as a background image that starts at
+// zero size (so nothing shows) and swells on hover to $bloom-size of the
+// element. Its black outer stop passes beyond the element as it grows, so
+// the colours sweep outward from the centre. An ellipse, so wide elements
+// bloom to their ends. Leaving shrinks it back.
+//
+// $bloom-samples are the ramp positions the bloom passes through, hottest
 // first, spaced evenly: the teal and green stretch of the ramp is skipped,
 // so it runs hot pink, magenta, red, then straight into blue, indigo,
-// purple and black.
+// purple and black. Both versions use them.
 $bloom-size: 260%;
 $bloom-in: 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
 $bloom-out: 0.3s ease-in;
@@ -105,10 +110,22 @@ $bloom-samples: 1 0.92 0.8 0.4 0.26 0.12 0;
   @return $s;
 }
 
+// The bloom's colours, cold to hot and evenly spaced, published for the
+// hover-heat script in the same "position colour," form
+@function bloom-ramp-string() {
+  $s: '';
+  $n: length($bloom-samples);
+  @for $i from $n through 1 {
+    $s: $s + (($n - $i) / ($n - 1)) + ' ' + thermal(nth($bloom-samples, $i)) + ',';
+  }
+  @return $s;
+}
+
 :root {
   --thermal-ramp: "#{ramp-string()}";
   --thermal-heat-min: #{$heat-min};
   --thermal-heat-max: #{$heat-max};
+  --bloom-ramp: "#{bloom-ramp-string()}";
 }
 
 $thermal-clock: 180s linear infinite alternate;
