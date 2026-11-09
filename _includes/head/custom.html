@@ -21,22 +21,8 @@
 <meta name="msapplication-TileColor" content="#000000">
 <meta name="msapplication-TileImage" content="{{ base_path }}/images/mstile-144x144.png?v=nb2026a">
 <meta name="msapplication-config" content="{{ base_path }}/images/browserconfig.xml?v=nb2026a">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#050514">
 <link rel="stylesheet" href="{{ base_path }}/assets/css/academicons.css"/>
-
-<!-- Pin the thermal clock's phase (page tint, ribbon rim, link ink; see
-     _sass/_thermal.scss) to wall-clock time rather than to page load, so the
-     colour carries on from where it was instead of restarting on navigation,
-     and starts somewhere different on each fresh visit. 360s is the exact
-     cycle length -- one there-and-back of the 180s sweep -- so the phase is
-     continuous rather than merely close. Runs before first paint; without JS
-     every animation simply starts from the cold state.
-     (The ribbon's wave gets the same continuity from reading Date.now()
-     directly; see the script in _includes/sidebar.html.) -->
-<script>
-  document.documentElement.style.setProperty(
-    '--thermal-phase', '-' + (Date.now() / 1000 % 360).toFixed(2) + 's');
-</script>
 
 <!-- EB Garamond webfont (site typography; see $eb-garamond in _sass/_variables.scss) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">

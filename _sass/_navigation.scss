@@ -172,16 +172,10 @@
    Priority plus navigation
    ========================================================================== */
 
-@media (prefers-reduced-motion: reduce) {
-  .greedy-nav a::before {
-    animation: none;
-  }
-}
-
 .greedy-nav {
   position: relative;
   min-width: 250px;
-  // transparent so the masthead's ambient-drift animation shows through
+  // transparent so the thermal surface in the masthead shows through
   // (the .hidden-links dropdown below keeps its own solid background)
   background: transparent;
 
@@ -194,34 +188,12 @@
     font-size: 1.15em;
     letter-spacing: 0.02em;
     position: relative;
+    transition: color 0.25s ease;
 
-    // On hover the type itself heats up: the same thermal rings as the pill
-    // buttons, painted through the glyphs with background-clip: text while
-    // the ink fades to transparent. With the hover-heat script
-    // (assets/js/thermal-hover.js) the word glows hotter the longer it is
-    // hovered and cools after; without it, the plain CSS bloom swells (see
-    // thermal-bloom in _thermal.scss).
-    @include thermal-bloom;
-    -webkit-background-clip: text;
-            background-clip: text;
-    transition: color 0.25s ease, background-size $bloom-out;
-
-    html:not(.heat-hover) &:hover {
-      color: transparent;
-      @include thermal-bloom-on;
-      transition: color 0.25s ease, background-size $bloom-in;
-    }
-
-    .heat-hover & {
-      background-image: var(--heat-fill, none);
-      background-size: 100% 100%;
-      transition: color 0.3s ease;
-    }
-
-    // the ink gives way while the script says the word is warm, which can
-    // outlast the hover while it cools
-    &.is-warm {
-      color: transparent;
+    // the hover state is the dashed box that draws itself round the word
+    // (assets/js/thermal-boxes.js); the type itself only brightens
+    &:hover {
+      color: $masthead-link-color-hover;
     }
   }
 
@@ -283,13 +255,15 @@
     background: #fff;
     box-shadow: 0 0 10px rgba(#000, 0.25);
 
+    // dark type: this menu keeps its white panel
     a {
       margin: 0;
       padding: 10px 20px;
+      color: $ink;
       font-size: $type-size-5;
 
       &:hover {
-        color: $masthead-link-color-hover;
+        color: #000;
         background: mix(#fff, $primary-color, 75%);
       }
     }

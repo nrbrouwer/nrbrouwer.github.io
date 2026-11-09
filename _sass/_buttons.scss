@@ -6,21 +6,18 @@
    Default button
    ========================================================================== */
 
-// Outlined pill that heats up under the cursor: the longer it is hovered,
-// the further up the thermal ramp it glows, spreading out from its centre,
-// and it cools after the cursor leaves (assets/js/thermal-hover.js; the
-// plain CSS bloom is the fallback, see thermal-bloom in _thermal.scss).
-// Shared with the disclosure toggles on the papers page (see _papers.scss)
-// so every control on the site reads as the same component.
+// Plain small capitals, no outline: on the black page a control is just its
+// word, and the dashed box that draws itself round the word on hover
+// (assets/js/thermal-boxes.js) is its only chrome. Shared with the abstract
+// toggles on the papers page (see _papers.scss) so every control on the
+// site reads as the same component. The padding is only spacing between
+// neighbouring controls; the box is measured from the word itself.
 @mixin pill-button {
   display: inline-block;
   position: relative;
-  // keeps the z-index:-1 bloom layer inside this element's own stacking
-  // context instead of slipping behind an ancestor's background
-  isolation: isolate;
   margin-bottom: 0.25em;
-  padding: 0.2em 0.9em;
-  color: $text-color !important;
+  padding: 0.2em 0.6em;
+  color: #fff !important;
   font-family: $global-font-family;
   font-size: 0.82em;
   font-weight: 600;
@@ -29,46 +26,8 @@
   text-align: center;
   text-decoration: none !important;
   background-color: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.4);
-  border-radius: 999px;
+  border: 0;
   cursor: pointer;
-  transition: color 0.25s ease, border-color 0.25s ease;
-
-  // the heat layer; inset -1px so it covers the border too. Invisible at
-  // rest (zero size for the CSS bloom, zero opacity for the script)
-  &::before {
-    content: "";
-    position: absolute;
-    inset: -1px;
-    border-radius: 999px;
-    @include thermal-bloom;
-    z-index: -1;
-  }
-
-  // white type once the fill is there: on hover for the CSS bloom, and while
-  // the script says the pill is warm (it can still be cooling after the
-  // cursor has left, so this cannot hang off :hover)
-  html:not(.heat-hover) &:hover,
-  html:not(.heat-hover) &:focus-visible,
-  &.is-warm {
-    color: #fff !important;
-    border-color: transparent;
-    // white over the hot centre needs an edge
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65);
-  }
-
-  html:not(.heat-hover) &:hover::before,
-  html:not(.heat-hover) &:focus-visible::before {
-    @include thermal-bloom-on;
-  }
-
-  // the script's picture: its gradient at its opacity, full size
-  .heat-hover &::before {
-    background-image: var(--heat-fill, none);
-    background-size: 100% 100%;
-    opacity: var(--heat-alpha, 0);
-    transition: none;
-  }
 }
 
 .btn {

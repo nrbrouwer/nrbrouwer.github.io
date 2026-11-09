@@ -7,6 +7,8 @@ redirect_from:
   - /resume
 ---
 
+You can download a PDF copy of my CV [here](/files/pdf/brouwer_cv.pdf).
+
 <iframe src="/files/pdf/brouwer_cv.pdf?v={{ site.time | date: '%s' }}#toolbar=1&navpanes=0&scrollbar=1"
         width="100%" 
         height="500" 
@@ -15,5 +17,3 @@ redirect_from:
         marginwidth="0" 
         marginheight="0">
 </iframe>
-
-You can download a PDF copy of my CV [here](/files/pdf/brouwer_cv.pdf).

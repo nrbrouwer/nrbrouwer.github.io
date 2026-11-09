@@ -31,7 +31,7 @@ As part of UC Merced's California Senate simulation course, students are assigne
 This project is still in very early stages to get to a minimal viable product, but feel free to check out the development by clicking the button below. Once the project is more developed, if you have any suggestions on additions you would like to see, please feel free to contact me!
 
 
-<a href="https://ucmlegsim.com/" class="btn">Simulation Legislation Tracker</a>
+<a href="https://ucmlegsim.com/" class="btn btn--large">Click here for simulation legislation tracker</a>
 
 ### Protest Game
 
@@ -40,4 +40,4 @@ For some introductory courses, I like to use simple, mutliplayer games where the
 Setting up the game is not very difficult. It should take less than 30 minutes in total, Even for those unfamiliar with oTree. You can download all the necessary materials to run the game on oTree Hub from my GitHub repository, linked below. If you have any suggestions for things you would like to see in the game, please feel free to reach out!
 
 
-<a href="https://github.com/nrbrouwer/class_protest_game" class="btn">Click here for protest game</a>
+<a href="https://github.com/nrbrouwer/class_protest_game" class="btn btn--large">Click here for protest game</a>

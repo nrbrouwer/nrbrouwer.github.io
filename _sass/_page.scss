@@ -8,9 +8,6 @@
   margin-top: 2em;
   padding-left: 1em;
   padding-right: 1em;
-  // no intro fade here: a filling opacity animation makes #main an isolated
-  // stacking context forever, which blocks the figures' mix-blend-mode from
-  // seeing the ambient background (they'd render on white)
 
   @include breakpoint($x-large) {
     max-width: $x-large;
@@ -35,15 +32,16 @@
   }
 }
 
-// Book-plate divider: the title set as spaced small capitals with a hairline
-// rule running out to each side, so a one-word title like "Papers" reads as a
-// deliberate section marker instead of a word floating in the corner.
+// Book-plate title: spaced small capitals, centred, inside a standing dashed
+// box drawn by assets/js/thermal-boxes.js. display: table shrink-wraps the
+// word so the box hugs it; the padding is the room the box needs, 8px
+// above and below the type (the script's distance from the type) and a
+// little more at the sides so the box stays inside this element.
 .page__title {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 0;
-  margin-bottom: 1.4em;
+  display: table;
+  position: relative;
+  margin: 0 auto 1.4em;
+  padding: 8px 12px;
   font-size: $type-size-3;
   font-weight: 600;
   // lowercase + small-caps renders every letter as a small capital, so the
@@ -53,27 +51,6 @@
   letter-spacing: 0.22em;
   line-height: 1.3;
   text-align: center;
-
-  // the rules absorb whatever space the title leaves. A long title (a talk
-  // or publication page) shrinks them to the min-width flourish instead of
-  // forcing an awkward wrap
-  &::before,
-  &::after {
-    content: "";
-    flex: 1 1 auto;
-    min-width: 2em;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.28);
-  }
-
-  &::before {
-    margin-right: 1em;
-  }
-
-  // pulled in by the trailing letter-space so the word sits optically centred
-  &::after {
-    margin-left: calc(1em - 0.22em);
-  }
 
   & + .page__meta {
     margin-top: -0.5em;
@@ -86,11 +63,6 @@
 }
 
 .page__content {
-
-  h2 {
-    padding-bottom: 0.5em;
-    border-bottom: 1px solid $border-color;
-  }
 
   p, li, dl {
     font-size: 1em;
@@ -109,8 +81,8 @@
     }
   }
 
-  // no underline: links are carried by weight plus the drifting link colour
-  // (see thermal-ink in _base.scss). .btn keeps its own pill styling
+  // no underline: links are carried by weight plus the green (set in
+  // _base.scss). .btn has its own styling
   a:not(.btn) {
     text-decoration: none;
     font-weight: 700;
@@ -438,19 +410,4 @@
   margin-bottom: 10px;
   font-size: $type-size-6;
   text-transform: uppercase;
-}
-
-
-/*
-   Page-tint integration
-   ========================================================================== */
-
-// Content figures are mostly plots exported with baked-in white backgrounds.
-// Multiply blending turns white into whatever color sits underneath, so the
-// figures track the page tint (see _thermal.scss) instead of floating in
-// white boxes. (Photographs pick up a slight tint from the background hue,
-// but at ~88% lightness the effect is small.)
-.page__content img,
-.archive img {
-  mix-blend-mode: multiply;
 }

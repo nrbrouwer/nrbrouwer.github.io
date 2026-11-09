@@ -1,107 +1,14 @@
 /* ==========================================================================
-   THERMAL CLOCK
+   THERMAL RAMP
    ========================================================================== */
 
-// One clock, one scale. The ferrofluid ribbon's rim has a temperature that
-// rises from $heat-min to $heat-max over 180s and falls back over the next
-// 180s (an alternating animation), phase-locked to wall-clock time by the
-// snippet in head/custom.html so it carries across page loads. Everything
-// coloured on the page is a function of that one temperature -- the page
-// tint and the link ink here, and the ribbon's surface, which reads the ramp
-// and the clock out of the custom properties published at the end of this
-// file. The hover bloom (below) and the ribbon's cursor trace use the whole
-// ramp instead, as a thermal camera would. The palette is $thermal-ramp in
-// _variables.scss.
+// The palette is $thermal-ramp in _variables.scss: black (cold) up through
+// deep purple, indigo, blue, teal, green and red to magenta and hot pink.
+// The page itself is the cold end, and everything warmer on it is drawn by
+// assets/js/thermal-field.js, which colours the surface from this ramp as
+// the cursor and the ambient patches warm it. The ramp is published to the
+// script here as "position colour," pairs, so the two can never disagree.
 
-// Bloom: the hover effect for the pill buttons and the nav type.
-//
-// Normally the hover-heat script (assets/js/thermal-hover.js) draws it: the
-// element heats up the longer the cursor rests on it and cools after it
-// leaves, coloured from --bloom-ramp, published at the end of this file.
-//
-// Without the script (the html element lacks the heat-hover class), it falls
-// back to a plain CSS bloom: the ramp as concentric rings, hottest at the
-// centre and black at the rim, drawn as a background image that starts at
-// zero size (so nothing shows) and swells on hover to $bloom-size of the
-// element. Its black outer stop passes beyond the element as it grows, so
-// the colours sweep outward from the centre. An ellipse, so wide elements
-// bloom to their ends. Leaving shrinks it back.
-//
-// $bloom-samples are the ramp positions the bloom passes through, hottest
-// first, spaced evenly: the teal and green stretch of the ramp is skipped,
-// so it runs hot pink, magenta, red, then straight into blue, indigo,
-// purple and black. Both versions use them.
-$bloom-size: 260%;
-$bloom-in: 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
-$bloom-out: 0.3s ease-in;
-$bloom-samples: 1 0.92 0.8 0.4 0.26 0.12 0;
-
-@function bloom-gradient() {
-  $stops: ();
-  $n: length($bloom-samples);
-  @for $i from 1 through $n {
-    $stops: append($stops, thermal(nth($bloom-samples, $i)) percentage(($i - 1) / ($n - 1)), comma);
-  }
-  @return radial-gradient(ellipse closest-side, $stops);
-}
-
-@mixin thermal-bloom {
-  background-image: bloom-gradient();
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 0% 0%;
-  transition: background-size $bloom-out;
-}
-
-@mixin thermal-bloom-on {
-  background-size: $bloom-size $bloom-size;
-  transition: background-size $bloom-in;
-}
-
-// colour of the ramp at temperature $t in [0, 1], interpolated linearly
-// between the stops of $thermal-ramp
-@function thermal($t) {
-  $t: max(0, min(1, $t));
-  $prev: nth($thermal-ramp, 1);
-  @for $i from 2 through length($thermal-ramp) {
-    $stop: nth($thermal-ramp, $i);
-    @if $t <= nth($stop, 1) {
-      $f: ($t - nth($prev, 1)) / (nth($stop, 1) - nth($prev, 1));
-      @return mix(nth($stop, 2), nth($prev, 2), $f * 100%);
-    }
-    $prev: $stop;
-  }
-  @return nth(nth($thermal-ramp, length($thermal-ramp)), 2);
-}
-
-// rim temperature at keyframe $k of $heat-steps
-@function heat-at($k) {
-  @return $heat-min + ($heat-max - $heat-min) * $k / $heat-steps;
-}
-
-// Page tint: one band cooler than the rim on the ramp, turned round the hue
-// wheel by $thermal-page-hue-shift and lifted to a pale wash
-@function page-tint($t) {
-  $c: adjust-hue(thermal($t - 0.08), $thermal-page-hue-shift);
-  @return change-color($c,
-    $saturation: $thermal-page-saturation,
-    $lightness: $thermal-page-lightness);
-}
-
-// Link ink: the dark complement of the page tint, so it clears contrast on
-// every tint the page passes through. Yellow through green stays luminous
-// even when dark, so those hues are taken darker still
-@function ink-tint($t) {
-  $c: adjust-hue(page-tint($t), 180deg);
-  $h: hue($c);
-  $l: if($h > 40deg and $h < 170deg, 22%, 30%);
-  @return change-color($c, $saturation: 60%, $lightness: $l);
-}
-
-// The ramp and the clock's range, published for the ribbon's script (see
-// _includes/sidebar.html), which colours its thermal field from the same
-// ramp and runs it on the same wall-clock cycle, so the ribbon, the page
-// tint and the hover fills can never disagree. "position colour," pairs.
 @function ramp-string() {
   $s: '';
   @each $stop in $thermal-ramp {
@@ -110,41 +17,50 @@ $bloom-samples: 1 0.92 0.8 0.4 0.26 0.12 0;
   @return $s;
 }
 
-// The bloom's colours, cold to hot and evenly spaced, published for the
-// hover-heat script in the same "position colour," form
-@function bloom-ramp-string() {
-  $s: '';
-  $n: length($bloom-samples);
-  @for $i from $n through 1 {
-    $s: $s + (($n - $i) / ($n - 1)) + ' ' + thermal(nth($bloom-samples, $i)) + ',';
-  }
-  @return $s;
-}
-
 :root {
   --thermal-ramp: "#{ramp-string()}";
-  --thermal-heat-min: #{$heat-min};
-  --thermal-heat-max: #{$heat-max};
-  --bloom-ramp: "#{bloom-ramp-string()}";
 }
 
-$thermal-clock: 180s linear infinite alternate;
-
-@mixin thermal-clock($name) {
-  animation: $name $thermal-clock;
-  // wall-clock phase set in head/custom.html; without JS it starts cold
-  animation-delay: var(--thermal-phase, 0s);
+// The surface: two canvases the script creates, one fixed behind the page
+// and one inside the fixed masthead showing the same cells, scaled up from
+// one pixel per cell without smoothing so the cells stay square. Behind
+// everything; the html background is the same black, so there is nothing
+// to see until the first frame.
+.thermal-field {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: pixelated;
 }
 
-@keyframes thermal-page {
-  @for $k from 0 through $heat-steps {
-    #{$k * 100 / $heat-steps}% { background-color: page-tint(heat-at($k)); }
+.thermal-field--masthead {
+  position: absolute;
+}
+
+// The dashed boxes (assets/js/thermal-boxes.js): standing ones sit inside
+// the element they frame, the hover one over the whole viewport
+.dashed-box {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.dashed-box--hover {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  // above the content, below the masthead's dropdown (100)
+  z-index: 50;
+}
+
+@media print {
+  .thermal-field,
+  .dashed-box {
+    display: none;
   }
 }
-
-@keyframes thermal-ink {
-  @for $k from 0 through $heat-steps {
-    #{$k * 100 / $heat-steps}% { color: ink-tint(heat-at($k)); }
-  }
-}
-

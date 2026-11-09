@@ -2,72 +2,21 @@
    BASE ELEMENTS
    ========================================================================== */
 
-// Page tint: a single pale colour derived from the ferrofluid ribbon's rim
-// temperature (see _thermal.scss), so the page and the ribbon can never
-// disagree. It breathes through the ramp on the same 180s alternate clock as
-// the ribbon, phase-locked to wall-clock time by the snippet in
-// head/custom.html. A static sheen brightens the field slightly to the right
-// so it has some depth without a second moving colour.
-//
-// The animated colour lives on body::before, a viewport-fixed layer of its
-// own (will-change promotes it to the compositor), NOT on html: animating
-// the root background repaints the entire document every frame, and with
-// background-attachment: fixed it also defeats scroll compositing, which
-// stuttered badly. This way each frame repaints one flat rectangle and the
-// text above it is never touched. html keeps the static cold tint as the
-// no-animation fallback. The fixed masthead paints the same layer for itself
-// (see _masthead.scss). Reduced-motion users get the static cold state.
-$page-sheen: linear-gradient(90deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.3) 100%);
-
+// The page is black: the cold end of the thermal ramp (see _variables.scss).
+// Everything warmer is drawn over it by assets/js/thermal-field.js, on a
+// canvas fixed behind the content; this colour is what shows before the
+// script's first frame and wherever the surface is cold.
 html {
   /* sticky footer fix */
   position: relative;
   min-height: 100%;
-  background-color: page-tint($heat-min);
+  background-color: $background-color;
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  // behind body's content, above html's background
-  z-index: -1;
-  background-color: page-tint($heat-min);
-  background-image: $page-sheen;
-  will-change: transform;
-  pointer-events: none;
-  @include thermal-clock(thermal-page);
-}
-
-// Body-copy hyperlinks are the dark complement of the page tint, on the same
-// clock, so a link's hue always sits opposite the field behind it and every
-// stop clears contrast on every tint the page passes through.
+// Body-copy hyperlinks are the one colour in the type: the ramp's green
 .page__content a:not(.btn),
 .archive a:not(.btn) {
-  color: ink-tint($heat-min);
-  @include thermal-clock(thermal-ink);
-}
-
-// !important because most of these get their animation from partials
-// imported after this one (masthead, buttons, navigation, sidebar) at the
-// same specificity, which would otherwise win the cascade and run anyway.
-// The hover bloom is a transition; it simply snaps.
-@media (prefers-reduced-motion: reduce) {
-  body::before,
-  .masthead::before,
-  .page__content a:not(.btn),
-  .archive a:not(.btn) {
-    animation: none !important;
-  }
-
-  .btn::before,
-  .paper__disclosure > summary::before,
-  .greedy-nav a {
-    transition: none !important;
-  }
+  color: $link-color;
 }
 
 body {
@@ -220,11 +169,11 @@ td > code {
 
 /* horizontal rule */
 
+// no rules on the black page: the Markdown --- under the section headings
+// (papers, teaching) marks the section but draws nothing; the headings
+// carry their own dashed box instead (see assets/js/thermal-boxes.js)
 hr {
-  display: block;
-  margin: 1em 0;
-  border: 0;
-  border-top: 1px solid $border-color;
+  display: none;
 }
 
 /* lists */

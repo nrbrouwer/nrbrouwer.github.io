@@ -71,7 +71,7 @@ author_profile: true
 <div class="paper">
   <div class="paper__body">
     <h3 class="paper__title">Persuasion and Learning: Exploring Tribal Engagement and the Politics of Federal Support</h3>
-    <p class="paper__cite">with <strong>Tessa Provins</strong> &middot; <em>R&R at Publius/em></p>
+    <p class="paper__cite">with <strong>Tessa Provins</strong> &middot; <em>R&amp;R at Publius</em></p>
     <div class="paper__actions">
       <a href="/files/pdf/Brouwer_and_Provins_Native_Government_Allocation_2026.pdf" class="btn">Download</a>
       <details class="paper__disclosure">

@@ -52,12 +52,12 @@ $type-size-8                : 0.625em;  // ~10px
 /* The site's colour is one temperature scale, a deep thermal ramp: black
    (cold) through deep purple, indigo, blue, teal and green to deep red,
    magenta and a hot pink end. No yellow or cyan: every stop is a deep,
-   saturated colour, so nothing on the site strays into pastel. Only one
-   point on it shows at a time -- the rim temperature, which drifts along the
-   ramp over the 180s clock -- and every coloured element samples that point:
-   the ferrofluid ribbon, the page tint, link ink and the hover fills, via
-   the functions and keyframes in _thermal.scss. Pairs are (temperature,
-   colour). */
+   saturated colour. The page is the cold end of it, black, and everything
+   warmer is drawn on the page by assets/js/thermal-field.js (the cursor's
+   heat and the drifting ambient patches), which reads the ramp from the
+   custom property published in _thermal.scss. Type is white, and the one
+   colour in the type is the ramp's green, for links. Pairs are
+   (temperature, colour). */
 $thermal-ramp: (
   (0,    #050514),  // black
   (0.12, #2a0a4e),  // deep purple
@@ -70,28 +70,12 @@ $thermal-ramp: (
   (1,    #ff5aa8)   // hot pink
 );
 
-/* the ribbon's rim temperature breathes between these over the 180s clock;
-   $heat-steps is how many keyframes describe the sweep (colour is
-   interpolated between them) */
-$heat-min                   : 0.22;
-$heat-max                   : 1;
-$heat-steps                 : 10;
-
-/* page tint relative to the rim. 0deg makes the page a pale wash of the
-   ribbon's current typical hue, so the field reads as continuing faintly
-   into the page. 180deg puts the page opposite it on the hue wheel instead
-   -- a cool page behind a hot edge, a warm page behind a cold one. */
-$thermal-page-hue-shift     : 0deg;
-$thermal-page-saturation    : 58%;
-$thermal-page-lightness     : 85%;
-
 /* masthead properties */
 $masthead-height            : 70px;
 
 /* Sidebar properties */
-// the profile is a fixed column with the ferrofluid ribbon from here up. It
-// equals $large, where the theme first lays the profile out as a column at
-// all, so the ribbon exists whenever the column does
+// the profile is a fixed column from here up. It equals $large, where the
+// theme first lays the profile out as a column at all
 $sidebar-screen-min-width   : 925px;
 $sidebar-link-max-width     : 250px;
 
@@ -107,14 +91,18 @@ $darker-gray                : mix(#000, $gray, 60%);
 $light-gray                 : mix(#fff, $gray, 50%);
 $lighter-gray               : mix(#fff, $gray, 90%);
 
-$body-color                 : #fff;
-$background-color           : #fff;
+// the ramp's cold end: the page is black, and the thermal surface drawn
+// over it (assets/js/thermal-field.js) starts from the same colour
+$background-color           : nth(nth($thermal-ramp, 1), 2);
+$body-color                 : $background-color;
 $code-background-color      : #fafafa;
 $code-background-color-dark : $light-gray;
-// near-black with a little indigo in it, so body type sits inside the
-// thermal palette rather than reading as neutral grey against it
+// near-black with a little indigo in it; the type colour of the light
+// pop-ups (the nav's overflow menu, the profile's links on a phone)
 $ink                        : #17132b;
-$text-color                 : $ink;
+// white with a little of the ramp's violet in it, so the type sits inside
+// the palette rather than reading as neutral grey against it
+$text-color                 : #eceaf6;
 $border-color               : $lighter-gray;
 
 $primary-color              : #7a8288;
@@ -151,11 +139,13 @@ $xing-color                 : #006567;
 
 
 /* links */
-$link-color                 : $info-color;
-$link-color-hover           : mix(#000, $link-color, 25%);
-$link-color-visited         : mix(#fff, $link-color, 25%);
-$masthead-link-color        : mix(#fff, $ink, 15%);
-$masthead-link-color-hover  : #000;
+// the ramp's green (hue 134), lifted to 60% lightness and saturation so it
+// clears the black at better than 7:1
+$link-color                 : #5cd678;
+$link-color-hover           : mix(#fff, $link-color, 30%);
+$link-color-visited         : $link-color;
+$masthead-link-color        : #e9e6f5;
+$masthead-link-color-hover  : #fff;
 
 
 /*

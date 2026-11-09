@@ -43,23 +43,16 @@
   // The grid gives this sidebar a percentage width, but it is position:
   // fixed, so that percentage resolves against the viewport (~15% of it)
   // while the content column's position is governed by #main, which is
-  // capped. Widening the window therefore grows the ribbon without moving
-  // the text, squeezing the gutter shut -- and actually overlapping just
-  // below 1280px. Capping the width per band keeps a real gutter at every
-  // size. #main is itself capped at 1280px, so the space reserved for the
-  // ribbon is a constant 188px below that and 264px above it -- it never
-  // grows, which is why the theme's 250px at $x-large above leaves only a
-  // 14px sliver. These caps supersede it.
-  // Centred in the band between the screen edge and the content column
-  // rather than sitting hard against #main's left edge. #main is capped, so
-  // the content column's left edge is (50vw - 264px) below 1280px and
-  // (50vw - 362px) above it; half the leftover space centres the ribbon.
-  // 14px further left than centred, buying that space back as clear water
-  // between the portrait's right edge and the fluid's resting line.
-  // Widths leave ~22px between the portrait's right edge and the line (see
-  // .fluid below for where the line sits). Below 1024px the content column
-  // starts only ~212px from the screen edge at the narrowest (925px, where
-  // the profile first becomes a column), so the column is narrowest there.
+  // capped at 1280px. Widening the window would therefore grow the column
+  // without moving the text and squeeze the gutter shut, so the width is
+  // capped per band instead; the space left of the content column is a
+  // constant 188px below 1280px and 264px above it. The column is centred
+  // in that band (the content column's left edge is (50vw - 264px) below
+  // 1280px and (50vw - 362px) above it), 14px further left than centred so
+  // the portrait keeps clear water from the text. Below 1024px the content
+  // column starts only ~212px from the screen edge at the narrowest (925px,
+  // where the profile first becomes a column), so the column is narrowest
+  // there.
   @media screen and (min-width: $sidebar-screen-min-width) {
     width: 145px;
     max-width: 145px;
@@ -250,6 +243,8 @@
   border: 1px solid $border-color;
   border-radius: $border-radius;
   background: #fff;
+  // dark type on the white pop-up panel this list is on a phone
+  color: $ink;
   z-index: -1;
   box-shadow: 0 0 10px rgba(#000, 0.25);
   cursor: default;
@@ -258,8 +253,11 @@
     display: block;
     position: relative;
     margin: 0;
-    padding: 0;
+    // room for the dashed box: it is drawn 8px out from the type on every
+    // side, so the padding keeps it inside the list's own edges
+    padding: 8px;
     border: 0;
+    color: inherit;
     background: transparent;
     box-shadow: none;
   }
@@ -298,10 +296,11 @@
     }
   }
 
-  // a ruled index rather than a stack of social buttons
+  // an index rather than a stack of social buttons: no rules between the
+  // rows, the whole list framed by one standing dashed box instead (drawn
+  // by assets/js/thermal-boxes.js round .author__urls-wrapper)
   li {
     white-space: nowrap;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   }
 
   // the non-link rows (location, employer) keep the same rhythm
@@ -345,109 +344,36 @@
 }
 
 /*
-   Ferrofluid
+   Type on the thermal surface
    ========================================================================== */
 
-// Not blobs any more. The mass is one filled path, drawn on a canvas by the
-// script in _includes/sidebar.html, whose right-hand boundary is a function
-// of height and time -- a sum of five sine components with unrelated
-// wavelengths and periods, half of them travelling the other way. Inside it
-// is a surface like cloth draped over a frame: a low-resolution height map
-// of broad folds that rise and fall in place, higher toward the line, with
-// height mapped with no steps onto a palette of one or two hues at a time
-// (black through the hue to a lift toward light) and a little directional
-// light across the slopes. The hue is the shared clock's point on the
-// thermal ramp (see _thermal.scss). The include explains the knobs.
-//
-// This replaces a field of 32 divs pushed through an SVG blur filter, where
-// the silhouette was whatever the circles happened to merge into. A line is
-// both far cheaper (one path, ~115 points, no filter) and directly
-// controllable: the shape of the edge is now something we state rather than
-// something we hope for. Amplitudes total ~27px, so it undulates rather than
-// craters, and at rest the margin is straight.
-
-.fluid {
-  display: none;
+// The profile sits on the same black surface as the rest of the page (see
+// assets/js/thermal-field.js), at every width, so its type is light
+// throughout. The shadow keeps it legible when a warm patch or a heat trace
+// passes behind it.
+.sidebar .author__name {
+  color: #f2effc;
 }
 
+.sidebar .author__bio {
+  color: rgba(255, 255, 255, 0.7);
+  opacity: 1;
+}
+
+.sidebar .author__urls li.author__desktop {
+  color: rgba(255, 255, 255, 0.62);
+  opacity: 1;
+}
+
+.sidebar .author__name,
+.sidebar .author__bio,
+.sidebar .author__urls {
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75), 0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+// the links brighten on hover; that is their whole hover state, since the
+// list shares one standing box rather than each link drawing its own
 @media screen and (min-width: $sidebar-screen-min-width) {
-  .sidebar {
-    // above the masthead's 20 and above the fluid's 24. overflow-y stays auto
-    // so a tall profile can scroll inside a short ribbon
-    z-index: 25;
-    overflow-y: auto;
-  }
-
-  // Fixed to the viewport, from the screen edge out to a few px past the
-  // line. pointer-events: none matters: this covers the whole left region,
-  // and without it the overlay swallows wheel events aimed at the ribbon
-  // underneath it.
-  // The line rests INSET px (6, set in the script) short of this box's right
-  // edge, and the box is sized per band so the line stops ~25px short of the
-  // content column's text at that band's narrowest width: text starts ~204px
-  // in at 925px, ~248px at 1024px and ~278px at 1280px (where #main caps).
-  // Wider than that, the column's left edge moves right faster than the
-  // ribbon grows, so the gap only opens. If EDGE_MOTION is turned back on in
-  // the script, the line needs ~34px of slack inside this box again for its
-  // crests and pulls, so widen INSET and narrow these accordingly.
-  .fluid {
-    display: block;
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: calc(25% - 46px);
-    z-index: 24;
-    overflow: hidden;
-    pointer-events: none;
-
-    // Fail-safe: the ribbon is solid black in pure CSS, so the type is never
-    // on a bare page even if the script cannot run; its right edge is the
-    // line's resting position (INSET from this box's edge). The script
-    // retires it (see .fluid--live below) after its first frame.
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 6px;
-      background: #050514;
-    }
-
-    &.fluid--live::before {
-      display: none;
-    }
-  }
-
-  .fluid__canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  /*
-     Ribbon type, over the fluid
-     ========================================================================== */
-
-  .sidebar .author__name {
-    color: #f2effc;
-  }
-
-  .sidebar .author__bio {
-    color: rgba(255, 255, 255, 0.7);
-    opacity: 1;
-  }
-
-  .sidebar .author__urls li {
-    border-bottom-color: rgba(255, 255, 255, 0.16);
-  }
-
-  .sidebar .author__urls li.author__desktop {
-    color: rgba(255, 255, 255, 0.62);
-    opacity: 1;
-  }
-
   .sidebar .author__urls a {
     color: rgba(255, 255, 255, 0.84);
 
@@ -455,30 +381,10 @@
       color: #fff;
     }
   }
-
-  // a heavier shadow than before, because the field behind the type is no
-  // longer reliably dark: at hot phases it runs to cyan and green there
-  .sidebar .author__name,
-  .sidebar .author__bio,
-  .sidebar .author__urls {
-    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75), 0 0 12px rgba(0, 0, 0, 0.35);
-  }
 }
 
-@media screen and (min-width: 1024px) {
-  .fluid {
-    width: calc(25% - 22px);
-  }
-}
-
-@media screen and (min-width: 1280px) {
-  .fluid {
-    width: calc(25% - 56px);
-  }
-}
-
-// When the viewport is too short to show the whole profile, stop pinning the
-// ribbon. A fixed element with overflow-y: auto does technically scroll, but
+// When the viewport is too short to show the whole profile, stop pinning
+// it. A fixed element with overflow-y: auto does technically scroll, but
 // only while the pointer is over that narrow strip, which nobody discovers.
 // Letting it scroll with the page instead makes the content simply reachable.
 @media screen and (min-width: $sidebar-screen-min-width) and (max-height: 640px) {

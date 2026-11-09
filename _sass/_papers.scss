@@ -9,17 +9,12 @@
    to give a glance at what the paper looks at, not to be opened.
    ========================================================================== */
 
+// no rule between entries: space alone separates them on the black page
 .paper {
   display: flex;
   align-items: flex-start;
   gap: 1.6em;
-  margin: 0 0 1.75em;
-  padding-bottom: 1.5em;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-
-  &:last-child {
-    border-bottom: 0;
-  }
+  margin: 0 0 2.4em;
 }
 
 .paper__body {
@@ -43,15 +38,18 @@
   opacity: 0.85;
 }
 
+// The pill controls sit in one row with the abstract's toggle last. Floats
+// rather than flex: the toggle is the summary of a <details> whose panel
+// has to open under the whole row, and as a flex item the details box had
+// to claim a full row to manage that, which dropped the toggle onto a new
+// line on every click. Floated buttons let the summary's line flow beside
+// them and the panel clear below them, so nothing moves when it opens.
 .paper__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5em 0.6em;
+  @include clearfix;
 
-  // the theme adds bottom margin to buttons; the flex gap handles spacing
   > .btn {
-    margin-bottom: 0;
+    float: left;
+    margin: 0 0.6em 0.5em 0;
   }
 }
 
@@ -61,10 +59,8 @@
 
 .paper__figure {
   flex: 0 0 210px;
-  // links to the full-size image; zoom-in is the only hover affordance
-  // available here, since transform/opacity/filter would each make this a
-  // stacking context and cut the image off from the ambient background it
-  // multiplies against
+  // links to the full-size image; zoom-in is the only hover affordance, so
+  // the figure sits still on the surface
   display: block;
   cursor: zoom-in;
   text-decoration: none !important;
@@ -76,8 +72,8 @@
     height: auto;
   }
 
-  // the theme shadows image links on hover; that reads as a grey haze once
-  // the image is multiplying against the ambient background
+  // the theme shadows image links on hover; a shadow has nothing to fall on
+  // here
   &:hover img {
     box-shadow: none;
   }
@@ -88,20 +84,19 @@
    ========================================================================== */
 
 .paper__disclosure {
+  // a plain block, so its first line (the summary) runs on beside the
+  // floated buttons and its panel can clear them
+  display: block;
   margin: 0;
-  flex: 0 0 auto;
-
-  // open: claims a full row so the abstract spans the text column rather
-  // than sitting in a narrow strip beside the buttons
-  &[open] {
-    flex: 1 0 100%;
-  }
 
   > summary {
     @include pill-button;
-    margin-bottom: 0;
-    // hides the native disclosure triangle in favour of the caret below
+    margin: 0 0 0.5em;
+    // hides the native disclosure triangle in favour of the caret below;
+    // top-aligned so it sits level with the floated pills rather than on
+    // the line's baseline
     display: inline-block;
+    vertical-align: top;
     list-style: none;
 
     &::-webkit-details-marker {
@@ -122,9 +117,11 @@
 }
 
 .paper__panel {
-  margin: 0.9em 0 0.2em;
-  padding: 0.1em 0 0.1em 1.1em;
-  border-left: 3px solid rgba(0, 0, 0, 0.22);
+  // below the whole row of pills, spanning the text column, flush with the
+  // title and citation (no rule down its side)
+  clear: both;
+  margin: 0.4em 0 0.2em;
+  padding: 0.1em 0;
   font-size: 0.95em;
   line-height: 1.6;
   animation: intro 0.25s ease-out both;
