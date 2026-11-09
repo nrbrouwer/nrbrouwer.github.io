@@ -8,12 +8,12 @@
    stops when it closes; it goes when the cursor leaves. One SVG overlay
    pinned to the viewport holds it, so it can sit round anything.
 
-   Standing, round the sidebar's list of links and the headings on the
-   archive pages (STATIC_LIST and STATIC_HEADINGS), as an SVG inside the
+   Standing, round the sidebar's list of links and the page title and
+   section headings (STATIC_LIST and STATIC_HEADINGS), as an SVG inside the
    element, so it moves with it. The stylesheet gives those elements the
    room: PAD px of padding above and below the type, a little more at the
-   sides (see .page__title in _page.scss, .archive h2 in _archive.scss and
-   .author__urls in _sidebar.scss).
+   sides (see .page__title and .page__content h2 in _page.scss, .archive h2
+   in _archive.scss and .author__urls in _sidebar.scss).
 
    The box is measured from the element's content box (its padding taken
    off, and the trailing letter-space of spaced capitals), so the gap to
@@ -24,7 +24,7 @@
 (function () {
   var PAD = 8, DASH = 12, GAP = 8, THICK = 2, DRAW = 1.5;
   var HOVER = '.btn, .paper__disclosure > summary, .greedy-nav .visible-links a';
-  var STATIC_HEADINGS = '.archive .page__title, .archive h2';
+  var STATIC_HEADINGS = '.page__title, .archive h2, .page__content h2';
   var STATIC_LIST = '.author__urls-wrapper';
 
   if (!document.createElementNS || !window.requestAnimationFrame ||

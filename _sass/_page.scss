@@ -64,6 +64,16 @@
 
 .page__content {
 
+  // section headings sit in a standing dashed box (assets/js/thermal-boxes.js)
+  // instead of over a rule; see .archive h2 in _archive.scss for the sizes
+  h2 {
+    display: table;
+    position: relative;
+    padding: 8px 12px;
+    margin-left: -12px;
+    margin-bottom: 0.8em;
+  }
+
   p, li, dl {
     font-size: 1em;
   }

@@ -19,6 +19,13 @@ html {
   color: $link-color;
 }
 
+// a dark halo behind the type, so it stays legible where a warm patch or a
+// heat trace passes behind it (the sidebar sets its own in _sidebar.scss)
+.page__inner-wrap,
+.archive {
+  text-shadow: 0 0 3px $background-color, 0 0 7px $background-color, 0 0 12px $background-color;
+}
+
 body {
   margin: 0;
   padding: $masthead-height 0 0;
